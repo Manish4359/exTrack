@@ -48,17 +48,33 @@ class _MyAppState extends State<MyApp> {
       Transaction(
           amount: 142, date: DateTime.now(), title: 'bike', category: 'fuel'),
       Transaction(
+          amount: 652,
+          date: DateTime.now(),
+          title: 'fever',
+          category: 'health'),
+      Transaction(
           amount: 540, date: DateTime.now(), title: 'lays', category: 'food'),
       Transaction(
           amount: 520, date: DateTime.now(), title: 'jeans', category: 'cloth'),
     ],
   };
 
+  int selectedPageId = 0;
+
+  selectPage(int pageId) {
+    setState(() {
+      selectedPageId = pageId;
+    });
+  }
+
   late List<Widget> widgets;
 
   _MyAppState() {
     widgets = [
-      Home(transactions: transactions),
+      Home(
+        transactions: transactions,
+        viewTransactions: selectPage,
+      ),
       Chart(transactions: transactions),
       Category(
         transactions: transactions,
@@ -68,13 +84,13 @@ class _MyAppState extends State<MyApp> {
       )
     ];
   }
-  int selectedid = 0;
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
         // appBar: AppBar(backgroundColor: Colors.red),
-        body: SafeArea(child: widgets.elementAt(selectedid)),
+        body: SafeArea(child: widgets.elementAt(selectedPageId)),
 
         bottomNavigationBar: BottomNavigationBar(
           items: [
@@ -84,9 +100,9 @@ class _MyAppState extends State<MyApp> {
             BottomNavigationBarItem(
                 icon: Icon(Icons.category_rounded), label: 'category'),
             BottomNavigationBarItem(
-                icon: Icon(Icons.settings), label: 'transactions'),
+                icon: Icon(Icons.arrow_drop_up_sharp), label: 'transactions'),
           ],
-          currentIndex: selectedid,
+          currentIndex: selectedPageId,
           elevation: 40,
           type: BottomNavigationBarType.fixed,
           unselectedItemColor: Colors.blue,
@@ -94,9 +110,7 @@ class _MyAppState extends State<MyApp> {
           selectedIconTheme: IconThemeData(size: 30),
           selectedItemColor: Color.fromARGB(255, 255, 121, 121),
           onTap: (id) {
-            setState(() {
-              selectedid = id;
-            });
+            selectPage(id);
           },
         ),
       ),
