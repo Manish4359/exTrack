@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import './chart.dart';
 import './home.dart';
@@ -20,42 +21,71 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  double monthlyIncome = 50000;
+  double totalExpanse = 0;
+  late double availableAmount;
+
   Map<String, List<Transaction>> transactions = {
     '6/23/2022': [
       Transaction(
-        amount: 50,
+          amount: 50,
+          date: DateTime.now(),
+          title: 'milk',
+          category: 'food',
+          amountType: 'debit'),
+      Transaction(
+        amount: 550,
         date: DateTime.now(),
-        title: 'milk',
-        category: 'food',
+        title: 'gta',
+        amountType: 'debit',
+        category: 'entertainment',
       ),
       Transaction(
-          amount: 550,
-          date: DateTime.now(),
-          title: 'gta',
-          category: 'entertainment'),
-      Transaction(
           amount: 400,
+          amountType: 'debit',
           date: DateTime.now(),
           title: 'cod',
           category: 'entertainment'),
       Transaction(
           amount: 290,
+          amountType: 'debit',
           date: DateTime.now(),
           title: 'tshirt',
           category: 'cloth'),
     ],
     '6/25/2022': [
       Transaction(
-          amount: 142, date: DateTime.now(), title: 'bike', category: 'fuel'),
+          amount: 142,
+          date: DateTime.now(),
+          title: 'bike',
+          amountType: 'debit',
+          category: 'others'),
       Transaction(
           amount: 652,
           date: DateTime.now(),
+          amountType: 'debit',
           title: 'fever',
           category: 'health'),
       Transaction(
-          amount: 540, date: DateTime.now(), title: 'lays', category: 'food'),
+          amount: 540,
+          date: DateTime.now(),
+          title: 'lays',
+          amountType: 'debit',
+          category: 'food'),
       Transaction(
-          amount: 520, date: DateTime.now(), title: 'jeans', category: 'cloth'),
+        amount: 520,
+        date: DateTime.now(),
+        title: 'jeans',
+        amountType: 'debit',
+        category: 'cloth',
+      ),
+      Transaction(
+        amount: 2220,
+        date: DateTime.now(),
+        title: 'zomato refund',
+        amountType: 'credit',
+        category: 'others',
+      ),
     ],
   };
 
@@ -70,12 +100,18 @@ class _MyAppState extends State<MyApp> {
   late List<Widget> widgets;
 
   _MyAppState() {
+    totalExpanse = getTotalExpense(transactions);
+
+    availableAmount = monthlyIncome - totalExpanse;
     widgets = [
       Home(
+          transactions: transactions,
+          viewTransactions: selectPage,
+          availableAmount: availableAmount),
+      Chart(
         transactions: transactions,
-        viewTransactions: selectPage,
+        totalExpanse: totalExpanse,
       ),
-      Chart(transactions: transactions),
       Category(
         transactions: transactions,
       ),
@@ -85,9 +121,30 @@ class _MyAppState extends State<MyApp> {
     ];
   }
 
+  changeExpenseAmount(double amt) {
+    setState(() {
+      totalExpanse = amt;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: ThemeData(
+        appBarTheme: AppBarTheme(
+          titleTextStyle: TextStyle(fontFamily: 'Lato', fontSize: 20),
+        ),
+        fontFamily: 'Quicksand',
+        scrollbarTheme: ScrollbarThemeData(
+          crossAxisMargin: 3,
+          mainAxisMargin: 10,
+          radius: Radius.circular(50),
+          thickness: MaterialStateProperty.all(5),
+          thumbColor: MaterialStateProperty.all(
+            Color.fromARGB(255, 56, 56, 56),
+          ),
+        ),
+      ),
       home: Scaffold(
         // appBar: AppBar(backgroundColor: Colors.red),
         body: SafeArea(child: widgets.elementAt(selectedPageId)),
@@ -116,4 +173,20 @@ class _MyAppState extends State<MyApp> {
       ),
     );
   }
+}
+
+double getTotalExpense(Map<String, List<Transaction>> tr) {
+  double amount = 0;
+  int currentMonth = int.parse(DateFormat.M().format(DateTime.now()));
+
+  tr.forEach((date, list) {
+    int month = DateFormat('M/dd/yy').parse(date).month;
+    if (month == currentMonth) {
+      list.forEach((t) {
+        amount += t.amount;
+      });
+    }
+  });
+
+  return amount;
 }

@@ -8,7 +8,13 @@ import './models/transaction.dart';
 class Chart extends StatefulWidget {
   final Map<String, List<Transaction>> transactions;
 
-  Chart({Key? key, required this.transactions}) : super(key: key);
+  double totalExpanse = 0;
+
+  Chart({
+    Key? key,
+    required this.transactions,
+    required this.totalExpanse,
+  }) : super(key: key);
 
   @override
   State<Chart> createState() => _ChartState();
@@ -17,26 +23,24 @@ class Chart extends StatefulWidget {
 class _ChartState extends State<Chart> {
   int monthId = 6;
   List<String> categorylist = [
-    'fuel',
     'cloth',
     'food',
     'entertainment',
-    'health'
+    'health',
+    'others'
   ];
-  double total = 0;
 
   Map<String, double> datamap = {
     'food': 0,
-    'fuel': 0,
     'cloth': 0,
     'entertainment': 0,
-    'health': 0
+    'health': 0,
+    'others': 0
   };
 
-  updatedatamap(newdatamap, newtotal) {
+  updatedatamap(newdatamap) {
     setState(() {
       datamap = newdatamap;
-      total = newtotal;
     });
   }
 
@@ -103,26 +107,30 @@ class _ChartState extends State<Chart> {
             child: PieChart(
               ringStrokeWidth: 30,
               //legendOptions: LegendOptions(),
-              formatChartValues: (double v) => '${(v * 100 / total).round()}%',
+              formatChartValues: (double v) =>
+                  '${(v * 100 / widget.totalExpanse).round()}%',
               chartValuesOptions: ChartValuesOptions(
                   decimalPlaces: 0, showChartValuesOutside: true),
               animationDuration: Duration(seconds: 1),
               emptyColor: Colors.transparent,
               dataMap: datamap,
               chartType: ChartType.ring,
-              centerText: 'Total:\n${total.round()}',
+              centerText: 'Total:\n${widget.totalExpanse.round()}',
             ),
           ),
           Expanded(
-            child: ListView.builder(
-              itemCount: categorylist.length,
-              itemBuilder: (context, id) {
-                if (datamap[categorylist[id]] != 0) {
-                  return category(categorylist[id], datamap[categorylist[id]]);
-                } else {
-                  return SizedBox();
-                }
-              },
+            child: Scrollbar(
+              child: ListView.builder(
+                itemCount: categorylist.length,
+                itemBuilder: (context, id) {
+                  if (datamap[categorylist[id]] != 0) {
+                    return category(
+                        categorylist[id], datamap[categorylist[id]]);
+                  } else {
+                    return SizedBox();
+                  }
+                },
+              ),
             ),
           )
         ],
@@ -134,10 +142,10 @@ class _ChartState extends State<Chart> {
 void getChartData(Map<String, List<Transaction>> transaction, int monthid,
     Function updatedatamap) {
   double food = 0;
-  double fuel = 0;
   double entertainment = 0;
   double cloth = 0;
   double health = 0;
+  double others = 0;
 
   transaction.forEach(
     (k, v) {
@@ -150,8 +158,8 @@ void getChartData(Map<String, List<Transaction>> transaction, int monthid,
             case 'food':
               food += tr.amount;
               break;
-            case 'fuel':
-              fuel += tr.amount;
+            case 'others':
+              others += tr.amount;
               break;
             case 'entertainment':
               entertainment += tr.amount;
@@ -168,17 +176,17 @@ void getChartData(Map<String, List<Transaction>> transaction, int monthid,
     },
   );
 
-  double total = food + fuel + cloth + entertainment;
+  double total = food + others + cloth + entertainment;
 
-  print('$food-$fuel-$cloth-$entertainment');
+  print('$food-$others-$cloth-$entertainment');
   Map<String, double> datamap = {
     'food': food,
-    'fuel': fuel,
     'cloth': cloth,
     'entertainment': entertainment,
-    'health': health
+    'health': health,
+    'others': others
   };
-  updatedatamap(datamap, total);
+  updatedatamap(datamap);
 }
 
 Container category(type, amount) {
@@ -186,8 +194,10 @@ Container category(type, amount) {
     margin: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
     child: Row(
       children: [
-        Expanded(
-          flex: 2,
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 5),
+          height: 60,
+          width: 60,
           child: Image.asset(
             'assets/images/$type.png',
           ),
