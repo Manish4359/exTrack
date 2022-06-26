@@ -8,12 +8,9 @@ import './models/transaction.dart';
 class Chart extends StatefulWidget {
   final Map<String, List<Transaction>> transactions;
 
-  double totalExpanse = 0;
-
   Chart({
     Key? key,
     required this.transactions,
-    required this.totalExpanse,
   }) : super(key: key);
 
   @override
@@ -21,7 +18,10 @@ class Chart extends StatefulWidget {
 }
 
 class _ChartState extends State<Chart> {
-  int monthId = 6;
+  late double expenseTotal;
+  int monthId = int.parse(DateFormat.M().format(DateTime.now()));
+
+  List<bool> btnSelected = [];
   List<String> categorylist = [
     'cloth',
     'food',
@@ -38,13 +38,14 @@ class _ChartState extends State<Chart> {
     'others': 0
   };
 
-  updatedatamap(newdatamap) {
+  updatedatamap(newdatamap, newtotal) {
     setState(() {
       datamap = newdatamap;
+      expenseTotal = newtotal;
     });
   }
 
-  List months = [
+  List<String> months = [
     'Jan',
     'Feb',
     'Mar',
@@ -58,10 +59,43 @@ class _ChartState extends State<Chart> {
     'Nov',
     'Dec'
   ];
+  ScrollController scrolljump = ScrollController();
+
+  void changeSelectedBtnColor() {
+    setState(() {
+      for (int i = 0; i < 12; i++) {
+        if (monthId == (i + 1)) {
+          btnSelected[i] = true;
+        } else
+          btnSelected[i] = false;
+      }
+    });
+  }
+
+  _ChartState() {
+    for (int i = 0; i < 12; i++) {
+      btnSelected.add(false);
+    }
+  }
+
+  Color selectedColor = Colors.black;
+
+  void goToElement(int index) {
+    if (index <= 3) return;
+    scrolljump.animateTo(
+      (75.0 *
+          (index -
+              3)), // 100 is the height of container and index of 6th element is 5
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.bounceIn,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     getChartData(widget.transactions, monthId, updatedatamap);
+    goToElement(monthId);
+    print(monthId);
     return Scaffold(
       // appBar: AppBar(),
       body: Column(
@@ -69,31 +103,33 @@ class _ChartState extends State<Chart> {
         children: [
           Container(
             height: 40,
-            child: ListView.builder(
-              itemCount: 1,
+            child: ListView(
+              controller: scrolljump,
               scrollDirection: Axis.horizontal,
-              itemBuilder: (BuildContext context, index) {
-                return Row(
-                  children: months
-                      .map(
-                        (mo) => Container(
-                          margin: EdgeInsets.all(5),
-                          child: ElevatedButton(
-                            onPressed: () {
-                              setState(
-                                () {
-                                  monthId = months.indexOf(mo) + 1;
-                                  print(monthId);
-                                },
-                              );
+              children: months
+                  .map(
+                    (String mo) => Container(
+                      margin: EdgeInsets.all(5),
+                      width: 65,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                            primary: btnSelected[months.indexOf(mo)]
+                                ? selectedColor
+                                : Colors.blue),
+                        onPressed: () {
+                          print("${months.indexOf(mo)} inside");
+                          setState(
+                            () {
+                              monthId = months.indexOf(mo) + 1;
+                              changeSelectedBtnColor();
                             },
-                            child: Text(mo),
-                          ),
-                        ),
-                      )
-                      .toList(),
-                );
-              },
+                          );
+                        },
+                        child: Text(mo),
+                      ),
+                    ),
+                  )
+                  .toList(),
             ),
           ),
           Container(
@@ -108,14 +144,14 @@ class _ChartState extends State<Chart> {
               ringStrokeWidth: 30,
               //legendOptions: LegendOptions(),
               formatChartValues: (double v) =>
-                  '${(v * 100 / widget.totalExpanse).round()}%',
+                  '${(v * 100 / expenseTotal).round()}%',
               chartValuesOptions: ChartValuesOptions(
                   decimalPlaces: 0, showChartValuesOutside: true),
               animationDuration: Duration(seconds: 1),
               emptyColor: Colors.transparent,
               dataMap: datamap,
               chartType: ChartType.ring,
-              centerText: 'Total:\n${widget.totalExpanse.round()}',
+              centerText: 'Total:\n${expenseTotal.round()}',
             ),
           ),
           Expanded(
@@ -176,7 +212,7 @@ void getChartData(Map<String, List<Transaction>> transaction, int monthid,
     },
   );
 
-  double total = food + others + cloth + entertainment;
+  double total = food + others + cloth + entertainment + health;
 
   print('$food-$others-$cloth-$entertainment');
   Map<String, double> datamap = {
@@ -186,7 +222,7 @@ void getChartData(Map<String, List<Transaction>> transaction, int monthid,
     'health': health,
     'others': others
   };
-  updatedatamap(datamap);
+  updatedatamap(datamap, total);
 }
 
 Container category(type, amount) {

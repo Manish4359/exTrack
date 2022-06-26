@@ -26,56 +26,57 @@ class _MyAppState extends State<MyApp> {
   late double availableAmount;
 
   Map<String, List<Transaction>> transactions = {
-    '6/23/2022': [
+    '6/25/2022': [
       Transaction(
-          amount: 50,
-          date: DateTime.now(),
-          title: 'milk',
-          category: 'food',
-          amountType: 'debit'),
+        amount: 50,
+        date: DateTime.now(),
+        title: 'purchased milk',
+        category: 'food',
+        amountType: 'debit',
+      ),
       Transaction(
         amount: 550,
         date: DateTime.now(),
-        title: 'gta',
+        title: 'bought battlefield 5',
         amountType: 'debit',
         category: 'entertainment',
       ),
       Transaction(
-          amount: 400,
+          amount: 1400,
           amountType: 'debit',
           date: DateTime.now(),
-          title: 'cod',
+          title: 'watched doctor strange in imax',
           category: 'entertainment'),
       Transaction(
           amount: 290,
           amountType: 'debit',
           date: DateTime.now(),
-          title: 'tshirt',
+          title: 'bought polo tshirt',
           category: 'cloth'),
     ],
-    '6/25/2022': [
+    '6/23/2022': [
       Transaction(
-          amount: 142,
+          amount: 110,
           date: DateTime.now(),
-          title: 'bike',
+          title: 'bike petrol 1L',
           amountType: 'debit',
           category: 'others'),
       Transaction(
           amount: 652,
           date: DateTime.now(),
           amountType: 'debit',
-          title: 'fever',
+          title: 'bought medicine ',
           category: 'health'),
       Transaction(
           amount: 540,
           date: DateTime.now(),
-          title: 'lays',
+          title: 'ordered via zomato',
           amountType: 'debit',
           category: 'food'),
       Transaction(
         amount: 520,
         date: DateTime.now(),
-        title: 'jeans',
+        title: 'bought jeans(black)',
         amountType: 'debit',
         category: 'cloth',
       ),
@@ -87,9 +88,54 @@ class _MyAppState extends State<MyApp> {
         category: 'others',
       ),
     ],
+    '5/13/2022': [
+      Transaction(
+        amount: 2220,
+        date: DateTime.now(),
+        title: 'zomato refund',
+        amountType: 'credit',
+        category: 'others',
+      ),
+    ],
+    '2/13/2022': [
+      Transaction(
+        amount: 2220,
+        date: DateTime.now(),
+        title: 'zomato refund',
+        amountType: 'credit',
+        category: 'others',
+      ),
+    ],
+    '12/13/2022': [
+      Transaction(
+        amount: 2220,
+        date: DateTime.now(),
+        title: 'zomato refund',
+        amountType: 'credit',
+        category: 'others',
+      ),
+    ],
+    '9/13/2022': [
+      Transaction(
+        amount: 2220,
+        date: DateTime.now(),
+        title: 'zomato refund',
+        amountType: 'credit',
+        category: 'others',
+      ),
+    ],
+    '1/13/2022': [
+      Transaction(
+        amount: 2220,
+        date: DateTime.now(),
+        title: 'zomato refund',
+        amountType: 'credit',
+        category: 'others',
+      ),
+    ]
   };
 
-  int selectedPageId = 0;
+  int selectedPageId = 1;
 
   selectPage(int pageId) {
     setState(() {
@@ -110,7 +156,6 @@ class _MyAppState extends State<MyApp> {
           availableAmount: availableAmount),
       Chart(
         transactions: transactions,
-        totalExpanse: totalExpanse,
       ),
       Category(
         transactions: transactions,
@@ -146,9 +191,30 @@ class _MyAppState extends State<MyApp> {
         ),
       ),
       home: Scaffold(
-        // appBar: AppBar(backgroundColor: Colors.red),
+        /*
+        drawer: Drawer(
+          child: SafeArea(
+            child: Column(
+              children: [
+                SizedBox(
+                  height: 20,
+                ),
+                Text(
+                  'Chart',
+                  style: TextStyle(fontSize: 25),
+                ),
+              ],
+            ),
+          ),
+        ),
+       appBar: AppBar(
+          elevation: 0,
+          backgroundColor: Colors.white,
+          iconTheme: IconThemeData(
+            color: Colors.black,
+          ),
+        ),*/
         body: SafeArea(child: widgets.elementAt(selectedPageId)),
-
         bottomNavigationBar: BottomNavigationBar(
           items: [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'home'),

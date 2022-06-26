@@ -30,15 +30,24 @@ class _HomeState extends State<Home> {
           height: 130,
           margin: EdgeInsets.only(top: 10, left: 30, right: 30),
           padding: EdgeInsets.all(10),
-          child: Center(
-            child: Text(
-              '₹${widget.availableAmount}',
-              textAlign: TextAlign.left,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 40,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Available balance',
+                style: TextStyle(
+                  color: Colors.white,
+                ),
               ),
-            ),
+              Text(
+                '₹${widget.availableAmount}',
+                //textAlign: TextAlign.left,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 40,
+                ),
+              ),
+            ],
           ),
           decoration: BoxDecoration(
             color: Colors.black,
@@ -68,7 +77,9 @@ class _HomeState extends State<Home> {
         ),
         Expanded(
           child: Scrollbar(
-            child: ListView(children: recentTr(widget.transactions)),
+            child: ListView(
+              children: recentTr(widget.transactions),
+            ),
           ),
         ),
       ],
