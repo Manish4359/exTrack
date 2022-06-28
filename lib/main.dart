@@ -135,7 +135,20 @@ class _MyAppState extends State<MyApp> {
     ]
   };
 
-  int selectedPageId = 1;
+  int selectedPageId = 0;
+
+  List<bool> bottomBarItemSelected = [true, false, false, false];
+
+  void changeSelectedItem(int pageId) {
+    setState(() {
+      for (int i = 0; i < 4; i++) {
+        if (i == pageId)
+          bottomBarItemSelected[i] = true;
+        else
+          bottomBarItemSelected[i] = false;
+      }
+    });
+  }
 
   selectPage(int pageId) {
     setState(() {
@@ -191,6 +204,7 @@ class _MyAppState extends State<MyApp> {
         ),
       ),
       home: Scaffold(
+        //  backgroundColor: Colors.black,
         /*
         drawer: Drawer(
           child: SafeArea(
@@ -215,27 +229,94 @@ class _MyAppState extends State<MyApp> {
           ),
         ),*/
         body: SafeArea(child: widgets.elementAt(selectedPageId)),
+        bottomNavigationBar: BottomAppBar(
+          clipBehavior: Clip.hardEdge,
+          notchMargin: 5,
+          //  color: Colors.green,
+          shape: CircularNotchedRectangle(),
+          elevation: 40,
+          child: Container(
+            height: 60,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(60),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                customBottomBarItem(
+                  Icons.home,
+                  'Home',
+                  selectPage,
+                  0,
+                  changeSelectedItem,
+                  bottomBarItemSelected[0],
+                ),
+                customBottomBarItem(
+                  Icons.pie_chart_outline_rounded,
+                  'Graph',
+                  selectPage,
+                  1,
+                  changeSelectedItem,
+                  bottomBarItemSelected[1],
+                ),
+                SizedBox(
+                  width: 40,
+                ),
+                customBottomBarItem(
+                  Icons.category_rounded,
+                  'Category',
+                  selectPage,
+                  2,
+                  changeSelectedItem,
+                  bottomBarItemSelected[2],
+                ),
+                customBottomBarItem(
+                  Icons.list_alt_rounded,
+                  'Expenses',
+                  selectPage,
+                  3,
+                  changeSelectedItem,
+                  bottomBarItemSelected[3],
+                ),
+              ],
+            ),
+          ),
+        ),
+        floatingActionButton: FloatingActionButton(
+          elevation: 50,
+          onPressed: () {},
+          child: Container(
+            child: Icon(Icons.add),
+            height: 60,
+            width: 60,
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(60), color: Colors.black),
+          ),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        /*
         bottomNavigationBar: BottomNavigationBar(
           items: [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'home'),
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
             BottomNavigationBarItem(
-                icon: Icon(Icons.pie_chart_outline_rounded), label: 'graph'),
+                icon: Icon(Icons.pie_chart_outline_rounded), label: 'Graph'),
             BottomNavigationBarItem(
-                icon: Icon(Icons.category_rounded), label: 'category'),
+                icon: Icon(Icons.category_rounded), label: 'Category'),
             BottomNavigationBarItem(
-                icon: Icon(Icons.arrow_drop_up_sharp), label: 'transactions'),
+                icon: Icon(Icons.arrow_drop_up_sharp), label: 'Transactions'),
           ],
           currentIndex: selectedPageId,
           elevation: 40,
           type: BottomNavigationBarType.fixed,
           unselectedItemColor: Colors.blue,
-          showUnselectedLabels: true,
+          showUnselectedLabels: false,
           selectedIconTheme: IconThemeData(size: 30),
           selectedItemColor: Color.fromARGB(255, 255, 121, 121),
           onTap: (id) {
             selectPage(id);
           },
         ),
+        */
       ),
     );
   }
@@ -255,4 +336,40 @@ double getTotalExpense(Map<String, List<Transaction>> tr) {
   });
 
   return amount;
+}
+
+Container customBottomBarItem(IconData icon, String label, Function selectPage,
+    int selectPageId, Function changeSelectedItem, bool isSelected) {
+  return Container(
+    padding: EdgeInsets.all(5),
+    child: ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        padding: EdgeInsets.zero,
+        primary: isSelected ? Colors.black : Colors.white,
+        elevation: isSelected ? 10 : 0,
+      ),
+      child: Column(
+        children: [
+          Icon(
+            icon,
+            color: isSelected ? Colors.white : Colors.black,
+          ),
+          Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? Colors.white : Colors.black,
+              fontSize: 12,
+            ),
+          )
+        ],
+      ),
+      onPressed: () {
+        selectPage(selectPageId);
+        changeSelectedItem(selectPageId);
+      },
+    ),
+  );
 }

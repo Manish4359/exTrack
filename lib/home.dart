@@ -23,13 +23,14 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
+    var deviceData = MediaQuery.of(context);
     return Column(
       children: [
         Container(
           width: double.infinity,
-          height: 130,
-          margin: EdgeInsets.only(top: 10, left: 30, right: 30),
-          padding: EdgeInsets.all(10),
+          height: MediaQuery.of(context).size.height * 0.25,
+          padding: EdgeInsets.only(top: 10, left: 30, right: 30),
+          // margin: EdgeInsets.all(10),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -51,37 +52,65 @@ class _HomeState extends State<Home> {
           ),
           decoration: BoxDecoration(
             color: Colors.black,
-            borderRadius: BorderRadius.circular(50),
-          ),
-        ),
-        Padding(
-          padding: EdgeInsets.all(10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Recent expenses'),
-              ElevatedButton(
-                  onPressed: () {
-                    widget.viewTransactions(3);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    primary: Colors.black,
-                    padding: EdgeInsets.all(5),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                  child: Text('view all'))
-            ],
+            /*gradient: LinearGradient(colors: [
+                Colors.black,
+                Colors.blueAccent,
+              ], begin: Alignment.topLeft, end: Alignment.bottomRight),*/
+            //borderRadius: BorderRadius.circular(50),
           ),
         ),
         Expanded(
-          child: Scrollbar(
-            child: ListView(
-              children: recentTr(widget.transactions),
+          child: Container(
+            // height: deviceData.size.height * 0.6,
+            color: Colors.black,
+            child: Container(
+              padding: EdgeInsets.only(top: 10, left: 10, right: 10),
+              // height: double.infinity,
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
+                  color: Colors.white),
+              child: Column(
+                children: [
+                  Container(
+                    height: 50,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Recent expenses',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            widget.viewTransactions(3);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            primary: Colors.black,
+                            padding: EdgeInsets.all(5),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          child: Text('view all'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView(
+                      children: recentTr(widget.transactions),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
+        )
       ],
     );
   }
@@ -114,13 +143,18 @@ Card transactionCard(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '$category',
+                  '${category.toUpperCase()}',
                   style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                Text('$title')
+                Text(
+                  '${title}',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                  ),
+                )
               ],
             ),
           ),
@@ -167,7 +201,8 @@ List<Card> recentTr(Map<String, List<Transaction>> tr) {
             padding: EdgeInsets.all(5),
             child: Text(
               '$key',
-              style: TextStyle(color: Colors.white),
+              style:
+                  TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
             ),
           ),
           color: Color.fromARGB(255, 65, 65, 65),

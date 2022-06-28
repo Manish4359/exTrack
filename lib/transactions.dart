@@ -14,7 +14,8 @@ class _UserTransactionsState extends State<UserTransactions> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: Text('UserTransactions'),
+      child: Text('UserTransactions',
+          style: TextStyle(color: Color.fromARGB(255, 197, 47, 47))),
     );
   }
 }

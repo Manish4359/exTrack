@@ -76,6 +76,7 @@ class _ChartState extends State<Chart> {
     for (int i = 0; i < 12; i++) {
       btnSelected.add(false);
     }
+    btnSelected[monthId - 1] = true;
   }
 
   Color selectedColor = Colors.black;
@@ -86,16 +87,18 @@ class _ChartState extends State<Chart> {
       (75.0 *
           (index -
               3)), // 100 is the height of container and index of 6th element is 5
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.bounceIn,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeIn,
     );
   }
 
   @override
   Widget build(BuildContext context) {
     getChartData(widget.transactions, monthId, updatedatamap);
-    goToElement(monthId);
+    Future.delayed(Duration.zero, () => goToElement(monthId));
+
     print(monthId);
+
     return Scaffold(
       // appBar: AppBar(),
       body: Column(
@@ -113,9 +116,10 @@ class _ChartState extends State<Chart> {
                       width: 65,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                            primary: btnSelected[months.indexOf(mo)]
-                                ? selectedColor
-                                : Colors.blue),
+                          primary: btnSelected[months.indexOf(mo)]
+                              ? selectedColor
+                              : Colors.blue,
+                        ),
                         onPressed: () {
                           print("${months.indexOf(mo)} inside");
                           setState(
