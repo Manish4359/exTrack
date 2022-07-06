@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "855451027828",
+    "project_id": "extrack-ac660",
+    "storage_bucket": "extrack-ac660.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:855451027828:android:159fd584263bd07e514421",
+        "android_client_info": {
+          "package_name": "com.example.extrack"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "855451027828-pkpe6a4na5hpgkh8vkgl6amde397gqtd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCLXlJHIqgrVQSf5IyY4Pw_AY26fXK5lu0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "855451027828-pkpe6a4na5hpgkh8vkgl6amde397gqtd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

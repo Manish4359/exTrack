@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/painting.dart';
 import 'package:intl/intl.dart';
 
 import 'package:pie_chart/pie_chart.dart';
 
-import './models/transaction.dart';
+import 'models/expense.dart';
 
 class Chart extends StatefulWidget {
-  final Map<String, List<Transaction>> transactions;
+  final Map<String, List<Expense>> expenses;
 
   Chart({
     Key? key,
-    required this.transactions,
+    required this.expenses,
   }) : super(key: key);
 
   @override
@@ -20,6 +21,14 @@ class Chart extends StatefulWidget {
 class _ChartState extends State<Chart> {
   late double expenseTotal;
   int monthId = int.parse(DateFormat.M().format(DateTime.now()));
+
+  /*bool expanded = false;
+
+  void changeexpanded() {
+    setState(() {
+      expanded = !expanded;
+    });
+  }*/
 
   List<bool> btnSelected = [];
   List<String> categorylist = [
@@ -61,7 +70,7 @@ class _ChartState extends State<Chart> {
   ];
   ScrollController scrolljump = ScrollController();
 
-  void changeSelectedBtnColor() {
+  void _changeSelectedBtnColor() {
     setState(() {
       for (int i = 0; i < 12; i++) {
         if (monthId == (i + 1)) {
@@ -81,7 +90,7 @@ class _ChartState extends State<Chart> {
 
   Color selectedColor = Colors.black;
 
-  void goToElement(int index) {
+  void _goToElement(int index) {
     if (index <= 3) return;
     scrolljump.animateTo(
       (75.0 *
@@ -94,8 +103,9 @@ class _ChartState extends State<Chart> {
 
   @override
   Widget build(BuildContext context) {
-    getChartData(widget.transactions, monthId, updatedatamap);
-    Future.delayed(Duration.zero, () => goToElement(monthId));
+    print('chart rebuild');
+    getChartData(widget.expenses, monthId, updatedatamap);
+    Future.delayed(Duration.zero, () => _goToElement(monthId));
 
     print(monthId);
 
@@ -112,7 +122,7 @@ class _ChartState extends State<Chart> {
               children: months
                   .map(
                     (String mo) => Container(
-                      margin: EdgeInsets.all(5),
+                      margin: const EdgeInsets.all(5),
                       width: 65,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
@@ -125,7 +135,7 @@ class _ChartState extends State<Chart> {
                           setState(
                             () {
                               monthId = months.indexOf(mo) + 1;
-                              changeSelectedBtnColor();
+                              _changeSelectedBtnColor();
                             },
                           );
                         },
@@ -136,36 +146,46 @@ class _ChartState extends State<Chart> {
                   .toList(),
             ),
           ),
-          Container(
-            height: 190,
-            padding: EdgeInsets.all(25),
-            margin: EdgeInsets.all(15),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: Color.fromARGB(255, 234, 234, 234),
-            ),
-            child: PieChart(
-              ringStrokeWidth: 30,
-              //legendOptions: LegendOptions(),
-              formatChartValues: (double v) =>
-                  '${(v * 100 / expenseTotal).round()}%',
-              chartValuesOptions: ChartValuesOptions(
-                  decimalPlaces: 0, showChartValuesOutside: true),
-              animationDuration: Duration(seconds: 1),
-              emptyColor: Colors.transparent,
-              dataMap: datamap,
-              chartType: ChartType.ring,
-              centerText: 'Total:\n${expenseTotal.round()}',
-            ),
-          ),
+          expenseTotal == 0
+              ? Text('NO EXPENSES FOUND')
+              : Container(
+                  height: 180,
+                  padding: const EdgeInsets.all(15),
+                  margin: const EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    color: Color.fromARGB(255, 0, 0, 0),
+                  ),
+                  child: PieChart(
+                    chartLegendSpacing: 20,
+                    ringStrokeWidth: 30,
+                    legendOptions: LegendOptions(
+                        // legendShape: BoxShape.rectangle,
+                        showLegendsInRow: true,
+                        legendPosition: LegendPosition.top,
+                        legendTextStyle: TextStyle(color: Colors.white)),
+                    formatChartValues: (double v) =>
+                        '${(v * 100 / expenseTotal).round()}%',
+                    chartValuesOptions: ChartValuesOptions(
+                        decimalPlaces: 0, showChartValuesOutside: true),
+                    animationDuration: Duration(seconds: 1),
+                    emptyColor: Colors.transparent,
+                    dataMap: datamap,
+                    chartType: ChartType.ring,
+                    centerText: 'Total:\n${expenseTotal.round()}',
+                  ),
+                ),
           Expanded(
             child: Scrollbar(
               child: ListView.builder(
                 itemCount: categorylist.length,
                 itemBuilder: (context, id) {
                   if (datamap[categorylist[id]] != 0) {
-                    return category(
-                        categorylist[id], datamap[categorylist[id]]);
+                    return getCategoryData(
+                      categorylist[id],
+                      datamap[categorylist[id]],
+                      context,
+                    );
                   } else {
                     return SizedBox();
                   }
@@ -179,7 +199,7 @@ class _ChartState extends State<Chart> {
   }
 }
 
-void getChartData(Map<String, List<Transaction>> transaction, int monthid,
+void getChartData(Map<String, List<Expense>> transaction, int monthid,
     Function updatedatamap) {
   double food = 0;
   double entertainment = 0;
@@ -229,48 +249,55 @@ void getChartData(Map<String, List<Transaction>> transaction, int monthid,
   updatedatamap(datamap, total);
 }
 
-Container category(type, amount) {
+Widget getCategoryData(type, amount, context) {
   return Container(
-    margin: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+    // color: const Color.fromARGB(255, 187, 172, 255),
+    margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
     child: Row(
       children: [
         Container(
-          padding: EdgeInsets.symmetric(horizontal: 5),
+          padding: const EdgeInsets.symmetric(horizontal: 5),
           height: 60,
           width: 60,
           child: Image.asset(
             'assets/images/$type.png',
           ),
         ),
-        Expanded(
-          flex: 7,
-          child: Container(
-            margin: EdgeInsets.symmetric(horizontal: 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '$type',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                  ),
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 10),
+          width: MediaQuery.of(context).size.width * 0.4,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '$type',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
                 ),
-                //Text('1 transactions')
-              ],
-            ),
+              ),
+              //Text('1 transactions')
+            ],
           ),
         ),
-        Expanded(
-          flex: 3,
+        Container(
+          child: Text(
+            '₹$amount',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 15),
+          ),
+        ),
+        /*
+        GestureDetector(
           child: Container(
-            child: Text(
-              '₹$amount',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 15),
+            child: Icon(
+              Icons.expand_more_rounded,
+              size: 35,
             ),
           ),
+          onTap: null,
         ),
+        */
       ],
     ),
   );
