@@ -1,3 +1,4 @@
+import 'package:extrack/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:intl/intl.dart';
@@ -8,11 +9,10 @@ import 'models/expense.dart';
 
 class Chart extends StatefulWidget {
   final Map<String, List<Expense>> expenses;
+  List<String> categorylist;
 
-  Chart({
-    Key? key,
-    required this.expenses,
-  }) : super(key: key);
+  Chart({Key? key, required this.expenses, required this.categorylist})
+      : super(key: key);
 
   @override
   State<Chart> createState() => _ChartState();
@@ -31,25 +31,28 @@ class _ChartState extends State<Chart> {
   }*/
 
   List<bool> btnSelected = [];
-  List<String> categorylist = [
-    'cloth',
-    'food',
-    'entertainment',
-    'health',
-    'others'
-  ];
 
-  Map<String, double> datamap = {
-    'food': 0,
-    'cloth': 0,
-    'entertainment': 0,
-    'health': 0,
-    'others': 0
-  };
+  late Map<String, double> count;
+
+  countMap(List<String> list) {
+    Map<String, double> map = {};
+    map.addEntries(list.map((String cat) => MapEntry(cat, 0)));
+    return map;
+  }
+
+  Future<void> getChartDataMap(
+      List<String> list, Map<String, double> countMap) async {
+    Map<String, double> map = {};
+    await Future.forEach(list, (String cat) {
+      if (countMap[cat] != 0)
+        map.addEntries([MapEntry(cat, countMap[cat] ?? 0)]);
+    });
+    chartDataMap = map;
+  }
 
   updatedatamap(newdatamap, newtotal) {
     setState(() {
-      datamap = newdatamap;
+      count = newdatamap;
       expenseTotal = newtotal;
     });
   }
@@ -101,10 +104,17 @@ class _ChartState extends State<Chart> {
     );
   }
 
+  Map<String, double> chartDataMap = {};
+
   @override
   Widget build(BuildContext context) {
-    print('chart rebuild');
-    getChartData(widget.expenses, monthId, updatedatamap);
+    count = countMap(widget.categorylist);
+
+    getChartDataMap(widget.categorylist, count);
+
+    print(chartDataMap.isEmpty);
+    getChartData(widget.expenses, monthId, updatedatamap, getChartDataMap,
+        widget.categorylist);
     Future.delayed(Duration.zero, () => _goToElement(monthId));
 
     print(monthId);
@@ -146,53 +156,75 @@ class _ChartState extends State<Chart> {
                   .toList(),
             ),
           ),
-          expenseTotal == 0
-              ? Text('NO EXPENSES FOUND')
-              : Container(
-                  height: 180,
-                  padding: const EdgeInsets.all(15),
-                  margin: const EdgeInsets.all(5),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    color: Color.fromARGB(255, 0, 0, 0),
-                  ),
-                  child: PieChart(
-                    chartLegendSpacing: 20,
-                    ringStrokeWidth: 30,
-                    legendOptions: LegendOptions(
-                        // legendShape: BoxShape.rectangle,
-                        showLegendsInRow: true,
-                        legendPosition: LegendPosition.top,
-                        legendTextStyle: TextStyle(color: Colors.white)),
-                    formatChartValues: (double v) =>
-                        '${(v * 100 / expenseTotal).round()}%',
-                    chartValuesOptions: ChartValuesOptions(
-                        decimalPlaces: 0, showChartValuesOutside: true),
-                    animationDuration: Duration(seconds: 1),
-                    emptyColor: Colors.transparent,
-                    dataMap: datamap,
-                    chartType: ChartType.ring,
-                    centerText: 'Total:\n${expenseTotal.round()}',
-                  ),
-                ),
-          Expanded(
-            child: Scrollbar(
-              child: ListView.builder(
-                itemCount: categorylist.length,
-                itemBuilder: (context, id) {
-                  if (datamap[categorylist[id]] != 0) {
-                    return getCategoryData(
-                      categorylist[id],
-                      datamap[categorylist[id]],
-                      context,
-                    );
-                  } else {
-                    return SizedBox();
-                  }
-                },
-              ),
-            ),
-          )
+          FutureBuilder(
+            future: getChartDataMap(widget.categorylist, count),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                return expenseTotal == 0
+                    ? Text('NO EXPENSES FOUND')
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                            height: MediaQuery.of(context).size.height * 0.3,
+                            padding: const EdgeInsets.all(15),
+                            margin: const EdgeInsets.all(5),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              color: Color.fromARGB(255, 0, 0, 0),
+                            ),
+                            child: PieChart(
+                              chartLegendSpacing: 20,
+                              ringStrokeWidth: 30,
+                              legendOptions: LegendOptions(
+                                  // legendShape: BoxShape.rectangle,
+                                  showLegendsInRow: true,
+                                  legendPosition: LegendPosition.top,
+                                  legendTextStyle:
+                                      TextStyle(color: Colors.white)),
+                              formatChartValues: (double v) =>
+                                  '${(v * 100 / expenseTotal).round()}%',
+                              chartValuesOptions: ChartValuesOptions(
+                                  decimalPlaces: 0,
+                                  showChartValuesOutside: true),
+                              animationDuration: Duration(seconds: 1),
+                              emptyColor: Colors.transparent,
+                              dataMap: chartDataMap,
+                              chartType: ChartType.ring,
+                              centerText: 'Total:\n${expenseTotal.round()}',
+                            ),
+                          ),
+                          Container(
+                            height: MediaQuery.of(context).size.height * 0.5,
+                            child: Scrollbar(
+                              child: ListView.builder(
+                                itemCount: widget.categorylist.length,
+                                itemBuilder: (context, id) {
+                                  print(widget.categorylist[id] +
+                                      " " +
+                                      "${chartDataMap.containsKey(widget.categorylist[id])}");
+
+                                  if (chartDataMap
+                                      .containsKey(widget.categorylist[id])) {
+                                    return getCategoryData(
+                                      widget.categorylist[id],
+                                      chartDataMap[widget.categorylist[id]],
+                                      context,
+                                    );
+                                  } else {
+                                    return SizedBox();
+                                  }
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+              }
+
+              return CircularProgressIndicator();
+            },
+          ),
         ],
       ),
     );
@@ -200,12 +232,17 @@ class _ChartState extends State<Chart> {
 }
 
 void getChartData(Map<String, List<Expense>> transaction, int monthid,
-    Function updatedatamap) {
+    Function updatedatamap, Function categorytomap, List<String> categorylist) {
   double food = 0;
   double entertainment = 0;
   double cloth = 0;
   double health = 0;
   double others = 0;
+  double gift = 0;
+  double bills = 0;
+  double electronics = 0;
+  double travel = 0;
+  double shopping = 0;
 
   transaction.forEach(
     (k, v) {
@@ -229,6 +266,21 @@ void getChartData(Map<String, List<Expense>> transaction, int monthid,
               break;
             case 'health':
               health += tr.amount;
+              break;
+            case 'gift':
+              others += tr.amount;
+              break;
+            case 'bills':
+              bills += tr.amount;
+              break;
+            case 'electronics':
+              electronics += tr.amount;
+              break;
+            case 'travel':
+              travel += tr.amount;
+              break;
+            case 'shopping':
+              shopping += tr.amount;
           }
           return;
         });
@@ -236,7 +288,7 @@ void getChartData(Map<String, List<Expense>> transaction, int monthid,
     },
   );
 
-  double total = food + others + cloth + entertainment + health;
+  double total = 0;
 
   print('$food-$others-$cloth-$entertainment');
   Map<String, double> datamap = {
@@ -244,8 +296,16 @@ void getChartData(Map<String, List<Expense>> transaction, int monthid,
     'cloth': cloth,
     'entertainment': entertainment,
     'health': health,
-    'others': others
+    'others': others,
+    'gift': gift,
+    'electronics': electronics,
+    'bills': bills,
+    'travel': travel,
+    'shopping': shopping
   };
+  for (MapEntry<String, double> e in datamap.entries) {
+    total += e.value;
+  }
   updatedatamap(datamap, total);
 }
 

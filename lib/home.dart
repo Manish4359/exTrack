@@ -24,7 +24,7 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
-    print('home updated');
+    print('home rebuilt');
 
     // var deviceData = MediaQuery.of(context);
     return Column(

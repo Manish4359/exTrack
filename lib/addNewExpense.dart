@@ -1,14 +1,25 @@
+import 'package:extrack/category.dart';
 import 'package:extrack/models/expense.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
 
-class AddExpense extends StatelessWidget {
+class AddExpense extends StatefulWidget {
+  Function addToList;
+  List<String> categorylist;
+
+  AddExpense({Key? key, required this.addToList, required this.categorylist})
+      : super(key: key);
+
+  @override
+  State<AddExpense> createState() => _AddExpenseState();
+}
+
+class _AddExpenseState extends State<AddExpense> {
   TextEditingController cardAmount = TextEditingController();
   TextEditingController cardtitle = TextEditingController();
 
-  Function addToList;
-
-  AddExpense(this.addToList);
+  int selectedCatId = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +66,7 @@ class AddExpense extends StatelessWidget {
                   ),
                   prefixIconConstraints:
                       BoxConstraints(maxHeight: 60, maxWidth: 60),
-                  suffixText: 'INR',
+                  //suffixText: 'INR',
                 ),
                 controller: cardAmount,
                 keyboardType: TextInputType.number,
@@ -83,34 +94,88 @@ class AddExpense extends StatelessWidget {
                 style: TextStyle(fontSize: 25, fontWeight: FontWeight.w500),
               ),
               SizedBox(height: 50),
-              ElevatedButton(
-                  onPressed: () async {
-                    Expense newtr = Expense(
-                      title: cardtitle.text,
-                      amount: int.parse(cardAmount.text),
-                      date: DateTime.now(),
-                      amountType: 'debit',
-                      category: 'others',
-                    );
-                    await this.addToList(newtr);
+              Container(
+                height: 70,
+                width: 200,
+                alignment: Alignment.center,
+                margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                // width: 200,
+                child: DropdownButtonFormField(
+                  isExpanded: true,
+                  isDense: false,
+                  value: widget.categorylist[selectedCatId],
 
-                    Navigator.pop(context);
+                  dropdownColor: Color.fromARGB(255, 245, 247, 255),
+                  borderRadius: BorderRadius.circular(10),
+                  decoration: InputDecoration(
+                    contentPadding: EdgeInsets.all(0),
+                    border: UnderlineInputBorder(borderSide: BorderSide.none),
+                  ),
+                  // menuMaxHeight: 40,
+                  items: widget.categorylist
+                      .map(
+                        (category) => DropdownMenuItem(
+                          value: category,
+                          child: Container(
+                            // height: 0,
+                            padding: EdgeInsets.all(5),
+                            child: Row(
+                              children: [
+                                Image.asset(
+                                  'assets/images/$category.png',
+                                  height: 30,
+                                ),
+                                SizedBox(
+                                  width: 20,
+                                ),
+                                Text(
+                                  category,
+                                  style: TextStyle(fontWeight: FontWeight.w600),
+                                )
+                              ],
+                            ),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (newCategory) {
+                    setState(() {
+                      selectedCatId =
+                          widget.categorylist.indexOf(newCategory as String);
+                    });
                   },
-                  style: ButtonStyle(
-                    backgroundColor:
-                        MaterialStateProperty.all<Color>(Colors.black),
-                    padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
-                        EdgeInsets.all(20)),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
+                ),
+              ),
+              SizedBox(height: 50),
+              ElevatedButton(
+                onPressed: () async {
+                  Expense newtr = Expense(
+                    title: cardtitle.text,
+                    amount: int.parse(cardAmount.text),
+                    date: DateTime.now(),
+                    amountType: 'debit',
+                    category: widget.categorylist[selectedCatId],
+                  );
+                  await widget.addToList(newtr);
+
+                  Navigator.pop(context);
+                },
+                style: ButtonStyle(
+                  backgroundColor:
+                      MaterialStateProperty.all<Color>(Colors.black),
+                  padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
+                      EdgeInsets.all(20)),
+                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
                     ),
                   ),
-                  child: Text(
-                    'Add transaction',
-                    style: TextStyle(fontSize: 20),
-                  )),
+                ),
+                child: Text(
+                  'Add Expense',
+                  style: TextStyle(fontSize: 20),
+                ),
+              ),
             ],
           ),
         ),

@@ -75,7 +75,7 @@ class _widState extends State<wid> {
 }
 
 Future<bool> splash() async {
-  await Future.delayed(Duration(milliseconds: 300));
+  await Future.delayed(Duration(milliseconds: 900));
   return true;
 }
 
@@ -172,7 +172,7 @@ class _MyAppState extends State<MyApp> {
         category: 'others',
       ),
     ],
-    '2/6/2022': [
+    '7/6/2022': [
       Expense(
         amount: 2220,
         date: DateTime.now(),
@@ -241,15 +241,30 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  List<String> categorylist = [
+    'cloth',
+    'food',
+    'entertainment',
+    'health',
+    'others',
+    'shopping',
+    'gift',
+    'bills',
+    'electronics',
+    'travel'
+  ];
+
   @override
   Widget build(BuildContext context) {
     widgets = [
       Home(
-          expenses: expenses,
-          viewExpenses: _selectPage,
-          availableAmount: availableAmount),
+        expenses: expenses,
+        viewExpenses: _selectPage,
+        availableAmount: availableAmount,
+      ),
       Chart(
         expenses: expenses,
+        categorylist: categorylist,
       ),
       Category(
         expenses: expenses,
@@ -258,7 +273,7 @@ class _MyAppState extends State<MyApp> {
         expenses: expenses,
       )
     ];
-    print('myapp updated');
+    print('myapp rebuilt');
     return Scaffold(
       //  backgroundColor: Colors.black,
       /*
@@ -344,7 +359,10 @@ class _MyAppState extends State<MyApp> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => AddExpense(this._addExpenseToMap),
+              builder: (context) => AddExpense(
+                addToList: this._addExpenseToMap,
+                categorylist: categorylist,
+              ),
             ),
           );
         },
