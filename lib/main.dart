@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'dart:html';
 
-import 'package:extrack/addNewExpense.dart';
+import 'package:extrack/expenseActions.dart';
 import 'package:extrack/splash.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_time_patterns.dart';
 import 'package:intl/intl.dart';
@@ -12,12 +12,13 @@ import 'firebase_options.dart';
 
 import './chart.dart';
 import './home.dart';
-import './category.dart';
+import 'userProfile.dart';
 import './settings.dart';
 import 'userAllExpenses.dart';
 
 import 'models/expense.dart';
 import './splash.dart';
+import './signinAndSignup.dart';
 
 // ...
 /*
@@ -26,7 +27,18 @@ await Firebase.initializeApp(
 );
 */
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+
+  FirebaseAuth.instance.userChanges().listen((User? user) {
+    if (user == null) {
+      print('User is currently signed out!');
+    } else {
+      print('User is signed in!');
+    }
+  });
+
   runApp(wid());
 }
 
@@ -38,11 +50,34 @@ class wid extends StatefulWidget {
 }
 
 class _widState extends State<wid> {
+  bool signedin = false;
+
+  userSigned() async {
+    setState(() {
+      signedin = !signedin;
+    });
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    if (FirebaseAuth.instance.currentUser != null) {
+      print(FirebaseAuth.instance.currentUser);
+      userSigned();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
         initialRoute: '/',
-        //  routes: {'/addNew': (context) => AddExpense(this._addExpenseToMap)},
+        routes: {
+          '/signup': (context) => SignUp(
+                userSigned: userSigned,
+              )
+        },
         theme: ThemeData(
           appBarTheme: AppBarTheme(
             titleTextStyle: TextStyle(fontFamily: 'Lato', fontSize: 20),
@@ -65,7 +100,13 @@ class _widState extends State<wid> {
               return SplashPage();
             }
             if (snapshot.hasData) {
-              return MyApp();
+              return signedin
+                  ? MyApp(
+                      userSigned: userSigned,
+                    )
+                  : SignIn(
+                      userSigned: userSigned,
+                    );
             }
 
             return SplashPage();
@@ -75,12 +116,13 @@ class _widState extends State<wid> {
 }
 
 Future<bool> splash() async {
-  await Future.delayed(Duration(milliseconds: 900));
+//  await Future.delayed(Duration(milliseconds: 1500));
   return true;
 }
 
 class MyApp extends StatefulWidget {
-  MyApp({Key? key}) : super(key: key);
+  VoidCallback userSigned;
+  MyApp({Key? key, required this.userSigned}) : super(key: key);
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -89,10 +131,14 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   double _monthlyIncome = 50000;
   double totalExpanseAmount = 0;
-  double availableAmount = 40;
+  double availableAmount = 0;
+
+  _MyAppState() {
+    _updateAmt();
+  }
 
   Map<String, List<Expense>> expenses = {
-    '6/25/2022': [
+    '7/7/2022': [
       Expense(
         amount: 50,
         date: DateFormat.yMd().parse('6/25/2022'),
@@ -119,8 +165,6 @@ class _MyAppState extends State<MyApp> {
           date: DateTime.now(),
           title: 'bought polo tshirt',
           category: 'cloth'),
-    ],
-    '6/23/2022': [
       Expense(
           amount: 110,
           date: DateTime.now(),
@@ -132,13 +176,13 @@ class _MyAppState extends State<MyApp> {
           date: DateTime.now(),
           amountType: 'debit',
           title: 'bought medicine ',
-          category: 'health'),
+          category: 'gift'),
       Expense(
           amount: 540,
           date: DateTime.now(),
           title: 'ordered via zomato',
           amountType: 'debit',
-          category: 'food'),
+          category: 'shopping'),
       Expense(
         amount: 520,
         date: DateTime.now(),
@@ -151,16 +195,16 @@ class _MyAppState extends State<MyApp> {
         date: DateTime.now(),
         title: 'zomato refund',
         amountType: 'credit',
-        category: 'others',
+        category: 'travel',
       ),
     ],
-    '5/13/2022': [
+    '7/3/2022': [
       Expense(
         amount: 2220,
         date: DateTime.now(),
         title: 'zomato refund',
         amountType: 'credit',
-        category: 'others',
+        category: 'bills',
       ),
     ],
     '2/13/2022': [
@@ -213,20 +257,11 @@ class _MyAppState extends State<MyApp> {
     print('avail amt updated:$availableAmount');
   }
 
-  @override
-  void initState() {
-    super.initState();
-    getTotalExpense(expenses).then((value) {
-      totalExpanseAmount = value;
-      availableAmount = _monthlyIncome - totalExpanseAmount;
-    });
-  }
-
   _addExpenseToMap(Expense ex) async {
     String exDate = DateFormat.yMd().format(ex.date);
 
     if (expenses.containsKey(exDate)) {
-      expenses[exDate]?.add(ex);
+      expenses[exDate]?.insert(0, ex);
     } else {
       expenses.addEntries([
         MapEntry(exDate, [ex])
@@ -266,12 +301,10 @@ class _MyAppState extends State<MyApp> {
         expenses: expenses,
         categorylist: categorylist,
       ),
-      Category(
-        expenses: expenses,
-      ),
       UserAllExpenses(
         expenses: expenses,
-      )
+      ),
+      Profile(userSigned: widget.userSigned),
     ];
     print('myapp rebuilt');
     return Scaffold(
@@ -334,16 +367,16 @@ class _MyAppState extends State<MyApp> {
                 width: 40,
               ),
               customBottomBarItem(
-                Icons.category_rounded,
-                'Category',
+                Icons.list_alt_rounded,
+                'Expenses',
                 _selectPage,
                 2,
                 _changeSelectedItem,
                 bottomBarItemSelected[2],
               ),
               customBottomBarItem(
-                Icons.list_alt_rounded,
-                'Expenses',
+                Icons.person,
+                'Profile',
                 _selectPage,
                 3,
                 _changeSelectedItem,

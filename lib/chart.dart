@@ -231,7 +231,7 @@ class _ChartState extends State<Chart> {
   }
 }
 
-void getChartData(Map<String, List<Expense>> transaction, int monthid,
+void getChartData(Map<String, List<Expense>> expense, int monthid,
     Function updatedatamap, Function categorytomap, List<String> categorylist) {
   double food = 0;
   double entertainment = 0;
@@ -244,7 +244,7 @@ void getChartData(Map<String, List<Expense>> transaction, int monthid,
   double travel = 0;
   double shopping = 0;
 
-  transaction.forEach(
+  expense.forEach(
     (k, v) {
       int month = DateFormat('M/dd/yy').parse(k).month;
       //print(DateFormat('M/dd/yy').parse(k).month);

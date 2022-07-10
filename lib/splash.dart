@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 class SplashPage extends StatelessWidget {
@@ -8,8 +10,6 @@ class SplashPage extends StatelessWidget {
     return Center(
       child: Container(
         child: CircularProgressIndicator(),
-        height: 200,
-        width: 200,
       ),
     );
   }

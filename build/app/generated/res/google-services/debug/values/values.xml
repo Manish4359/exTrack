@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="default_web_client_id" translatable="false">855451027828-pkpe6a4na5hpgkh8vkgl6amde397gqtd.apps.googleusercontent.com</string>
+    <string name="gcm_defaultSenderId" translatable="false">855451027828</string>
+    <string name="google_api_key" translatable="false">AIzaSyCLXlJHIqgrVQSf5IyY4Pw_AY26fXK5lu0</string>
+    <string name="google_app_id" translatable="false">1:855451027828:android:159fd584263bd07e514421</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyCLXlJHIqgrVQSf5IyY4Pw_AY26fXK5lu0</string>
+    <string name="google_storage_bucket" translatable="false">extrack-ac660.appspot.com</string>
+    <string name="project_id" translatable="false">extrack-ac660</string>
+</resources>

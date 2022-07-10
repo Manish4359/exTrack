@@ -1,9 +1,11 @@
 import 'dart:ui';
 
+import 'package:extrack/expenseCard.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'models/expense.dart';
+import './expenseCard.dart';
 
 class Home extends StatefulWidget {
   final Map<String, List<Expense>> expenses;
@@ -33,24 +35,63 @@ class _HomeState extends State<Home> {
           width: double.infinity,
           height: MediaQuery.of(context).size.height * 0.20,
           padding: const EdgeInsets.only(top: 10, left: 30, right: 30),
-          // margin: EdgeInsets.all(10),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              const Text(
-                'Available balance',
-                style: TextStyle(
-                  color: Colors.white,
+              Expanded(
+                child: Container(
+                  margin: EdgeInsets.all(10),
+                  padding: EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    color: Color.fromARGB(255, 103, 4, 189),
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'Available balance',
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                      ),
+                      Text(
+                        '₹${widget.availableAmount}',
+                        //textAlign: TextAlign.left,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 40,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              Text(
-                '₹${widget.availableAmount}',
-                //textAlign: TextAlign.left,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 40,
+              Expanded(
+                child: Container(
+                  margin: EdgeInsets.all(10),
+                  padding: EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    color: Color.fromARGB(255, 103, 4, 189),
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        child: Text(
+                          'Select \nAccount',
+                          //textAlign: TextAlign.left,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+              )
             ],
           ),
           decoration: BoxDecoration(
@@ -123,78 +164,9 @@ class _HomeState extends State<Home> {
   }
 }
 
-Card transactionCard(Expense expense) {
-  return Card(
-    clipBehavior: Clip.hardEdge,
-    color: const Color.fromARGB(255, 247, 247, 247),
-    margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(15),
-    ),
-    child: Row(
-      //mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: 5),
-          padding: const EdgeInsets.symmetric(horizontal: 5),
-          height: 55,
-          width: 55,
-          child: Image.asset('assets/images/${expense.category}.png'),
-        ),
-        Expanded(
-          flex: 5,
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${DateFormat.yMd().format(expense.date)}',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  '${expense.title}',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                  ),
-                )
-              ],
-            ),
-          ),
-        ),
-        Expanded(
-          flex: 2,
-          child: Container(
-            //margin: EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 15),
-            //height: double,
-            decoration: BoxDecoration(
-                // borderRadius: BorderRadius.circular(10), color: Colors.blue
-                ),
-            child: Text(
-              '₹${expense.amount}',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  //   color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 17,
-                  color: expense.amountType == 'debit'
-                      ? Colors.red
-                      : Colors.green),
-            ),
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-List<Card> recentTr(Map<String, List<Expense>> tr) {
+List<Widget> recentTr(Map<String, List<Expense>> tr) {
   int recentCount = 0;
-  List<Card> list = [];
+  List<Widget> list = [];
 
   tr.forEach((key, value) {
     if (recentCount == 7) {
@@ -221,8 +193,10 @@ List<Card> recentTr(Map<String, List<Expense>> tr) {
       recentCount++;
     }
 
-    value.forEach((tr) {
-      list.add(transactionCard(tr));
+    value.forEach((Expense ex) {
+      list.add(ExpenseCard(
+        expense: ex,
+      ));
     });
   });
 
