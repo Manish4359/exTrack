@@ -1,3 +1,5 @@
+import 'package:extrack/customTextField.dart';
+import 'package:extrack/models/expensesData.dart';
 import 'package:extrack/userProfile.dart';
 import 'package:extrack/models/expense.dart';
 import 'package:flutter/material.dart';
@@ -9,11 +11,13 @@ class AddExpense extends StatefulWidget {
   List<String> categorylist;
   bool editExpense;
   Expense? editExpenseData;
+  Function deleteExpense;
 
   AddExpense({
     Key? key,
     required this.addToList,
     required this.categorylist,
+    required this.deleteExpense,
     this.editExpense = false,
     this.editExpenseData,
   }) : super(key: key);
@@ -27,7 +31,7 @@ class _AddExpenseState extends State<AddExpense> {
   TextEditingController cardtitle = TextEditingController();
 
   int selectedCatId = 0;
-
+  String amountType = 'debit';
   @override
   void initState() {
     // TODO: implement initState
@@ -35,6 +39,7 @@ class _AddExpenseState extends State<AddExpense> {
     if (widget.editExpense) {
       cardtitle.text = widget.editExpenseData!.title;
       cardAmount.text = (widget.editExpenseData!.amount).toString();
+      amountType = widget.editExpenseData!.amountType;
     }
   }
 
@@ -54,149 +59,157 @@ class _AddExpenseState extends State<AddExpense> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: 10),
-              TextField(
-                cursorColor: Colors.black,
-                decoration: InputDecoration(
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.black, width: 2),
-                  ),
-                  labelText: 'Amount',
-                  labelStyle: TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.w600,
-                    color: Color.fromARGB(255, 136, 136, 136),
-                  ),
-                  hintText: 'Add an amount',
-                  hintStyle:
-                      TextStyle(fontSize: 25, fontWeight: FontWeight.w500),
-                  prefixIcon: Container(
-                    margin: EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                      color: Colors.black,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(
-                      Icons.currency_rupee_rounded,
-                      color: Colors.white,
-                      size: 50,
-                    ),
-                  ),
-                  prefixIconConstraints:
-                      BoxConstraints(maxHeight: 60, maxWidth: 60),
-                  //suffixText: 'INR',
-                ),
+              CustomTextField(
                 controller: cardAmount,
+                hintText: 'Add an amount',
+                icon: Icons.currency_rupee_rounded,
                 keyboardType: TextInputType.number,
-                style: TextStyle(fontSize: 30, fontWeight: FontWeight.w700),
               ),
               SizedBox(
                 height: 50,
               ),
-              TextField(
-                decoration: InputDecoration(
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.black, width: 2),
-                  ),
-                  labelText: 'Title',
-                  labelStyle: TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.w600,
-                    color: Color.fromARGB(255, 136, 136, 136),
-                  ),
-                  hintText: 'Add a title',
-                ),
-                cursorColor: Colors.black,
+              CustomTextField(
                 controller: cardtitle,
-                keyboardType: TextInputType.name,
-                style: TextStyle(fontSize: 25, fontWeight: FontWeight.w500),
+                hintText: 'Add a title',
+                icon: Icons.edit_note,
               ),
               SizedBox(height: 50),
-              Container(
-                height: 70,
-                width: 200,
-                alignment: Alignment.center,
-                margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                // width: 200,
-                child: DropdownButtonFormField(
-                  isExpanded: true,
-                  isDense: false,
-                  value: widget.editExpense
-                      ? widget.categorylist[widget.categorylist
-                              .indexOf(widget.editExpenseData!.category) ??
-                          0]
-                      : widget.categorylist[selectedCatId],
+              Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: Container(
+                      height: 70,
+                      //   width: 200,
+                      alignment: Alignment.center,
+                      margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      // width: 200,
+                      child: DropdownButtonFormField(
+                        isExpanded: true,
+                        isDense: false,
+                        value: widget.editExpense
+                            ? widget.categorylist.firstWhere((element) =>
+                                element == widget.editExpenseData!.category)
+                            : widget.categorylist[selectedCatId],
 
-                  dropdownColor: Color.fromARGB(255, 245, 247, 255),
-                  borderRadius: BorderRadius.circular(10),
-                  decoration: InputDecoration(
-                    contentPadding: EdgeInsets.all(0),
-                    border: UnderlineInputBorder(borderSide: BorderSide.none),
-                  ),
-                  // menuMaxHeight: 40,
-                  items: widget.categorylist
-                      .map(
-                        (category) => DropdownMenuItem(
-                          value: category,
-                          child: Container(
-                            // height: 0,
-                            padding: EdgeInsets.all(5),
-                            child: Row(
-                              children: [
-                                Image.asset(
-                                  'assets/images/$category.png',
-                                  height: 30,
-                                ),
-                                SizedBox(
-                                  width: 20,
-                                ),
-                                Text(
-                                  category,
-                                  style: TextStyle(fontWeight: FontWeight.w600),
-                                )
-                              ],
-                            ),
-                          ),
+                        dropdownColor: Color.fromARGB(255, 245, 247, 255),
+                        borderRadius: BorderRadius.circular(10),
+                        decoration: InputDecoration(
+                          contentPadding: EdgeInsets.all(0),
+                          border:
+                              UnderlineInputBorder(borderSide: BorderSide.none),
                         ),
-                      )
-                      .toList(),
-                  onChanged: (newCategory) {
-                    setState(() {
-                      selectedCatId =
-                          widget.categorylist.indexOf(newCategory as String);
-                    });
-                  },
-                ),
-              ),
-              SizedBox(height: 50),
-              ElevatedButton(
-                onPressed: () async {
-                  Expense newtr = Expense(
-                    title: cardtitle.text,
-                    amount: int.parse(cardAmount.text),
-                    date: DateTime.now(),
-                    amountType: 'debit',
-                    category: widget.categorylist[selectedCatId],
-                  );
-                  await widget.addToList(newtr);
-
-                  Navigator.pop(context);
-                },
-                style: ButtonStyle(
-                  backgroundColor:
-                      MaterialStateProperty.all<Color>(Colors.black),
-                  padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
-                      EdgeInsets.all(20)),
-                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                    RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+                        // menuMaxHeight: 40,
+                        items: widget.categorylist
+                            .map(
+                              (category) => DropdownMenuItem(
+                                value: category,
+                                child: Container(
+                                  // height: 0,
+                                  padding: EdgeInsets.all(5),
+                                  child: Row(
+                                    children: [
+                                      Image.asset(
+                                        'assets/images/$category.png',
+                                        height: 30,
+                                      ),
+                                      SizedBox(
+                                        width: 20,
+                                      ),
+                                      Text(
+                                        category,
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.w600),
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (newCategory) {
+                          setState(
+                            () {
+                              selectedCatId = widget.categorylist
+                                  .indexOf(newCategory as String);
+                            },
+                          );
+                        },
+                      ),
                     ),
                   ),
-                ),
-                child: Text(
-                  widget.editExpense ? 'Save Expense' : 'Add Expense',
-                  style: TextStyle(fontSize: 20),
-                ),
+                  Expanded(
+                    child: Container(
+                      width: 200,
+                      color: Colors.red,
+                      child: Text('debit'),
+                    ),
+                  ),
+                ],
               ),
+              SizedBox(height: 50),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  ElevatedButton(
+                    onPressed: () async {
+                      Expense newtr = Expense(
+                        title: cardtitle.text,
+                        amount: int.parse(cardAmount.text),
+                        date: DateTime.now(),
+                        amountType: 'debit',
+                        category: widget.categorylist[selectedCatId],
+                      );
+                      await widget.addToList(newtr);
+
+                      Navigator.pop(context);
+                    },
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all<Color>(
+                          Color.fromARGB(255, 65, 65, 65)),
+                      padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
+                          EdgeInsets.symmetric(horizontal: 20, vertical: 10)),
+                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                    ),
+                    child: Text(
+                      widget.editExpense ? 'Save Expense' : 'Add Expense',
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  widget.editExpense
+                      ? ElevatedButton(
+                          onPressed: () async {
+                            await widget.deleteExpense(widget.editExpenseData);
+                            Navigator.pop(context);
+                          },
+                          style: ButtonStyle(
+                            backgroundColor:
+                                MaterialStateProperty.all<Color>(Colors.red),
+                            padding:
+                                MaterialStateProperty.all<EdgeInsetsGeometry>(
+                                    EdgeInsets.symmetric(
+                                        horizontal: 20, vertical: 10)),
+                            shape: MaterialStateProperty.all<
+                                RoundedRectangleBorder>(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
+                          ),
+                          child: Text(
+                            'Delete',
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                        )
+                      : SizedBox()
+                ],
+              )
             ],
           ),
         ),

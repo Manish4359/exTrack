@@ -20,6 +20,9 @@ import 'models/expense.dart';
 import './splash.dart';
 import './signinAndSignup.dart';
 
+import './models/expensesData.dart';
+import './constant.dart';
+
 // ...
 /*
 await Firebase.initializeApp(
@@ -29,7 +32,9 @@ await Firebase.initializeApp(
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   FirebaseAuth.instance.userChanges().listen((User? user) {
     if (user == null) {
@@ -130,106 +135,19 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   double _monthlyIncome = 50000;
-  double totalExpanseAmount = 0;
+  double totalExpanseAmount = ExpensesData.getTotalExpenseAmount();
   double availableAmount = 0;
 
-  _MyAppState() {
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
     _updateAmt();
   }
 
-  Map<String, List<Expense>> expenses = {
-    '7/7/2022': [
-      Expense(
-        amount: 50,
-        date: DateFormat.yMd().parse('6/25/2022'),
-        title: 'purchased milk',
-        category: 'food',
-        amountType: 'debit',
-      ),
-      Expense(
-        amount: 550,
-        date: DateTime.now(),
-        title: 'bought battlefield 5',
-        amountType: 'debit',
-        category: 'entertainment',
-      ),
-      Expense(
-          amount: 1400,
-          amountType: 'debit',
-          date: DateTime.now(),
-          title: 'watched doctor strange in imax',
-          category: 'entertainment'),
-      Expense(
-          amount: 290,
-          amountType: 'debit',
-          date: DateTime.now(),
-          title: 'bought polo tshirt',
-          category: 'cloth'),
-      Expense(
-          amount: 110,
-          date: DateTime.now(),
-          title: 'bike petrol 1L',
-          amountType: 'debit',
-          category: 'others'),
-      Expense(
-          amount: 652,
-          date: DateTime.now(),
-          amountType: 'debit',
-          title: 'bought medicine ',
-          category: 'gift'),
-      Expense(
-          amount: 540,
-          date: DateTime.now(),
-          title: 'ordered via zomato',
-          amountType: 'debit',
-          category: 'shopping'),
-      Expense(
-        amount: 520,
-        date: DateTime.now(),
-        title: 'bought jeans(black)',
-        amountType: 'debit',
-        category: 'cloth',
-      ),
-      Expense(
-        amount: 2220,
-        date: DateTime.now(),
-        title: 'zomato refund',
-        amountType: 'credit',
-        category: 'travel',
-      ),
-    ],
-    '7/3/2022': [
-      Expense(
-        amount: 2220,
-        date: DateTime.now(),
-        title: 'zomato refund',
-        amountType: 'credit',
-        category: 'bills',
-      ),
-    ],
-    '2/13/2022': [
-      Expense(
-        amount: 2220,
-        date: DateTime.now(),
-        title: 'zomato refund',
-        amountType: 'credit',
-        category: 'others',
-      ),
-    ],
-    '7/6/2022': [
-      Expense(
-        amount: 2220,
-        date: DateTime.now(),
-        title: 'zomato refund',
-        amountType: 'credit',
-        category: 'others',
-      ),
-    ],
-  };
+  int selectedPageId = 2;
 
-  int selectedPageId = 0;
-
-  List<bool> bottomBarItemSelected = [true, false, false, false];
+  List<bool> bottomBarItemSelected = [false, false, true, false];
 
   void _changeSelectedItem(int pageId) {
     setState(() {
@@ -248,6 +166,7 @@ class _MyAppState extends State<MyApp> {
     setState(() {
       selectedPageId = pageId;
     });
+    _changeSelectedItem(pageId);
   }
 
   _updateAmt() {
@@ -260,49 +179,35 @@ class _MyAppState extends State<MyApp> {
   _addExpenseToMap(Expense ex) async {
     String exDate = DateFormat.yMd().format(ex.date);
 
-    if (expenses.containsKey(exDate)) {
-      expenses[exDate]?.insert(0, ex);
-    } else {
-      expenses.addEntries([
-        MapEntry(exDate, [ex])
-      ]);
-    }
-    double newExpenseAmt = await getTotalExpense(expenses).then(
-      (value) => value,
-    );
+    await ExpensesData.addExpense(ex);
+    double newExpenseAmt = await ExpensesData.getMonthlyExpenseAmount(exDate);
     setState(() {
       this.totalExpanseAmount = newExpenseAmt;
       this._updateAmt();
     });
   }
 
-  List<String> categorylist = [
-    'cloth',
-    'food',
-    'entertainment',
-    'health',
-    'others',
-    'shopping',
-    'gift',
-    'bills',
-    'electronics',
-    'travel'
-  ];
+  _deleteExpenseFromMap(Expense ex) async {
+    await ExpensesData.deleteExpense(ex);
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
     widgets = [
       Home(
-        expenses: expenses,
+        expenses: ExpensesData.expenses,
         viewExpenses: _selectPage,
         availableAmount: availableAmount,
+        deleteExpense: _deleteExpenseFromMap,
       ),
       Chart(
-        expenses: expenses,
-        categorylist: categorylist,
+        expenses: ExpensesData.expenses,
+        categorylist: Constants.CATEGORIES,
       ),
       UserAllExpenses(
-        expenses: expenses,
+        expenses: ExpensesData.expenses,
+        deleteExpense: _deleteExpenseFromMap,
       ),
       Profile(userSigned: widget.userSigned),
     ];
@@ -393,9 +298,9 @@ class _MyAppState extends State<MyApp> {
             context,
             MaterialPageRoute(
               builder: (context) => AddExpense(
-                addToList: this._addExpenseToMap,
-                categorylist: categorylist,
-              ),
+                  addToList: this._addExpenseToMap,
+                  categorylist: Constants.CATEGORIES,
+                  deleteExpense: _deleteExpenseFromMap),
             ),
           );
         },

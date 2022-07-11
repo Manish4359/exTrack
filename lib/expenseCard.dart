@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import './models/expense.dart';
 
 import 'expenseActions.dart';
+import './constant.dart';
 
 class ExpenseCard extends StatelessWidget {
   Expense expense;
-  ExpenseCard({Key? key, required this.expense}) : super(key: key);
+  Function deleteExpense;
+  ExpenseCard({Key? key, required this.expense, required this.deleteExpense})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -15,9 +18,10 @@ class ExpenseCard extends StatelessWidget {
         MaterialPageRoute(
           builder: (context) => AddExpense(
             addToList: () {},
-            categorylist: ['food', 'cloth'],
+            categorylist: Constants.CATEGORIES,
             editExpenseData: expense,
             editExpense: true,
+            deleteExpense: deleteExpense,
           ),
         ),
       ),

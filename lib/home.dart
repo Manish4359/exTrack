@@ -11,13 +11,15 @@ class Home extends StatefulWidget {
   final Map<String, List<Expense>> expenses;
   Function viewExpenses;
   double availableAmount;
+  Function deleteExpense;
 
-  Home({
-    Key? key,
-    required this.expenses,
-    required this.viewExpenses,
-    required this.availableAmount,
-  }) : super(key: key);
+  Home(
+      {Key? key,
+      required this.expenses,
+      required this.viewExpenses,
+      required this.availableAmount,
+      required this.deleteExpense})
+      : super(key: key);
 
   @override
   State<Home> createState() => _HomeState();
@@ -33,7 +35,7 @@ class _HomeState extends State<Home> {
       children: [
         Container(
           width: double.infinity,
-          height: MediaQuery.of(context).size.height * 0.20,
+          height: MediaQuery.of(context).size.height * 0.18,
           padding: const EdgeInsets.only(top: 10, left: 30, right: 30),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -60,7 +62,7 @@ class _HomeState extends State<Home> {
                         //textAlign: TextAlign.left,
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 40,
+                          fontSize: 20,
                         ),
                       ),
                     ],
@@ -131,7 +133,7 @@ class _HomeState extends State<Home> {
                         ),
                         ElevatedButton(
                           onPressed: () {
-                            widget.viewExpenses(3);
+                            widget.viewExpenses(2);
                           },
                           style: ElevatedButton.styleFrom(
                             primary: Colors.black,
@@ -151,7 +153,7 @@ class _HomeState extends State<Home> {
                   ),
                   Expanded(
                     child: ListView(
-                      children: recentTr(widget.expenses),
+                      children: recentTr(widget.expenses, widget.deleteExpense),
                     ),
                   ),
                 ],
@@ -164,7 +166,7 @@ class _HomeState extends State<Home> {
   }
 }
 
-List<Widget> recentTr(Map<String, List<Expense>> tr) {
+List<Widget> recentTr(Map<String, List<Expense>> tr, deleteExpense) {
   int recentCount = 0;
   List<Widget> list = [];
 
@@ -196,6 +198,7 @@ List<Widget> recentTr(Map<String, List<Expense>> tr) {
     value.forEach((Expense ex) {
       list.add(ExpenseCard(
         expense: ex,
+        deleteExpense: deleteExpense,
       ));
     });
   });

@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:pie_chart/pie_chart.dart';
 
 import 'models/expense.dart';
+import './constant.dart';
 
 class Chart extends StatefulWidget {
   final Map<String, List<Expense>> expenses;
@@ -57,20 +58,7 @@ class _ChartState extends State<Chart> {
     });
   }
 
-  List<String> months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'June',
-    'July',
-    'Aug',
-    'Sept',
-    'Oct',
-    'Nov',
-    'Dec'
-  ];
+  List<String> months = Constants.MONTHS;
   ScrollController scrolljump = ScrollController();
 
   void _changeSelectedBtnColor() {

@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import './customTextField.dart';
 /*
 class SignInAndSignUp extends StatefulWidget {
   SignInAndSignUp({Key? key}) : super(key: key);
@@ -35,76 +36,6 @@ class MyCustomClipper extends CustomClipper<Path> {
   @override
   bool shouldReclip(covariant CustomClipper<Path> oldClipper) {
     return false;
-  }
-}
-
-class CustomTextField extends StatefulWidget {
-  TextEditingController controller;
-  String hintText;
-  IconData icon;
-  bool obscureText;
-  CustomTextField(
-      {Key? key,
-      required this.controller,
-      required this.hintText,
-      required this.icon,
-      this.obscureText = false})
-      : super(key: key);
-
-  @override
-  State<CustomTextField> createState() => _CustomTextFieldState();
-}
-
-class _CustomTextFieldState extends State<CustomTextField> {
-  bool showPass = true;
-  bool showText = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.all(10),
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: Color.fromARGB(255, 255, 255, 255),
-        borderRadius: BorderRadius.circular(40),
-        boxShadow: [
-          BoxShadow(
-            color: Color.fromARGB(255, 237, 237, 237),
-            offset: Offset(0, 2),
-            blurRadius: 25,
-            spreadRadius: 1,
-          ),
-        ],
-      ),
-      child: TextField(
-        obscureText: widget.obscureText ? showText : false,
-        decoration: InputDecoration(
-          border: UnderlineInputBorder(borderSide: BorderSide.none),
-          hintText: widget.hintText,
-          prefixIcon: Icon(widget.icon),
-          suffixIcon: widget.obscureText
-              ? GestureDetector(
-                  child:
-                      Icon(showPass ? Icons.visibility : Icons.visibility_off),
-                  onTap: () => setState(() {
-                    showPass = !showPass;
-                    showText = !showText;
-                  }),
-                )
-              : null,
-          //  suffixIcon: Icon(Icons.lock),
-          hintStyle: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
-          //  hintText: 'Add a title',
-        ),
-        cursorColor: Colors.black,
-        controller: widget.controller,
-        keyboardType: TextInputType.name,
-        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-      ),
-    );
   }
 }
 
@@ -327,8 +258,8 @@ class _SignInState extends State<SignIn> {
                         try {
                           final credential = await FirebaseAuth.instance
                               .signInWithEmailAndPassword(
-                            email: emailController.text,
-                            password: passController.text,
+                            email: 'admin@gmail.com',
+                            password: 'qwerty@123',
                           );
 
                           print(credential.user);
