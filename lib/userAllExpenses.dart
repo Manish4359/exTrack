@@ -8,8 +8,12 @@ import 'models/expense.dart';
 class UserAllExpenses extends StatefulWidget {
   final Map<String, List<Expense>> expenses;
   Function deleteExpense;
+  Function saveExpense;
   UserAllExpenses(
-      {Key? key, required this.expenses, required this.deleteExpense})
+      {Key? key,
+      required this.expenses,
+      required this.deleteExpense,
+      required this.saveExpense})
       : super(key: key);
 
   @override
@@ -53,6 +57,7 @@ class _UserAllExpensesState extends State<UserAllExpenses> {
                       padding: EdgeInsets.all(10),
                       child: Text(
                         '${DateFormat.EEEE().format(DateFormat.yMd().parse(selectedDate))},${DateFormat.yMMMMd().format(DateFormat.yMd().parse(selectedDate))}',
+                        textAlign: TextAlign.center,
                         style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
@@ -88,8 +93,8 @@ class _UserAllExpensesState extends State<UserAllExpenses> {
                 //   width: 300,
                 //   height: 300,
                 child: ListView(
-                  children: recentTr(
-                      widget.expenses, selectedDate, widget.deleteExpense),
+                  children: monthlyExpense(widget.expenses, selectedDate,
+                      widget.deleteExpense, widget.saveExpense),
                 ),
               )
             ],
@@ -100,13 +105,17 @@ class _UserAllExpensesState extends State<UserAllExpenses> {
   }
 }
 
-List<Widget> recentTr(
-    Map<String, List<Expense>> ex, String selectedDate, deleteExpense) {
+List<Widget> monthlyExpense(Map<String, List<Expense>> ex, String selectedDate,
+    deleteExpense, saveExpense) {
   List<Widget> list = [];
 
   if (ex.containsKey(selectedDate)) {
     ex[selectedDate]!.forEach((expense) {
-      list.add(ExpenseCard(expense: expense, deleteExpense: deleteExpense));
+      list.add(ExpenseCard(
+        expense: expense,
+        deleteExpense: deleteExpense,
+        saveExpense: saveExpense,
+      ));
     });
   } else {
     list.add(Text('No Data Found!!'));

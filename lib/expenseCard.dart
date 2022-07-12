@@ -7,7 +7,12 @@ import './constant.dart';
 class ExpenseCard extends StatelessWidget {
   Expense expense;
   Function deleteExpense;
-  ExpenseCard({Key? key, required this.expense, required this.deleteExpense})
+  Function saveExpense;
+  ExpenseCard(
+      {Key? key,
+      required this.expense,
+      required this.deleteExpense,
+      required this.saveExpense})
       : super(key: key);
 
   @override
@@ -22,15 +27,22 @@ class ExpenseCard extends StatelessWidget {
             editExpenseData: expense,
             editExpense: true,
             deleteExpense: deleteExpense,
+            saveExpense: saveExpense,
           ),
         ),
       ),
-      child: Card(
+      child: Container(
         clipBehavior: Clip.hardEdge,
-        color: const Color.fromARGB(255, 247, 247, 247),
         margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-        shape: RoundedRectangleBorder(
+        decoration: BoxDecoration(
+          color: Color.fromARGB(255, 242, 242, 242),
           borderRadius: BorderRadius.circular(15),
+          boxShadow: [
+            BoxShadow(
+                color: Color.fromARGB(255, 187, 187, 187),
+                offset: Offset(0, 2),
+                spreadRadius: 1),
+          ],
         ),
         child: Row(
           //mainAxisAlignment: MainAxisAlignment.spaceEvenly,

@@ -159,7 +159,7 @@ class _ChartState extends State<Chart> {
                             margin: const EdgeInsets.all(5),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(10),
-                              color: Color.fromARGB(255, 0, 0, 0),
+                              color: Color.fromARGB(255, 65, 65, 65),
                             ),
                             child: PieChart(
                               chartLegendSpacing: 20,

@@ -12,13 +12,15 @@ class Home extends StatefulWidget {
   Function viewExpenses;
   double availableAmount;
   Function deleteExpense;
+  Function saveExpense;
 
   Home(
       {Key? key,
       required this.expenses,
       required this.viewExpenses,
       required this.availableAmount,
-      required this.deleteExpense})
+      required this.deleteExpense,
+      required this.saveExpense})
       : super(key: key);
 
   @override
@@ -45,7 +47,16 @@ class _HomeState extends State<Home> {
                   margin: EdgeInsets.all(10),
                   padding: EdgeInsets.symmetric(horizontal: 10),
                   decoration: BoxDecoration(
-                    color: Color.fromARGB(255, 103, 4, 189),
+                    gradient: LinearGradient(
+                      colors: [
+                        Color.fromARGB(255, 201, 48, 37),
+                        Color.fromARGB(255, 42, 219, 110),
+                        Color.fromARGB(255, 22, 128, 214),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    // color: Color.fromARGB(255, 103, 4, 189),
                     borderRadius: BorderRadius.circular(30),
                   ),
                   child: Column(
@@ -54,46 +65,20 @@ class _HomeState extends State<Home> {
                       const Text(
                         'Available balance',
                         style: TextStyle(
-                          color: Colors.white,
-                        ),
+                            color: Colors.white, fontWeight: FontWeight.bold),
                       ),
                       Text(
                         '₹${widget.availableAmount}',
                         //textAlign: TextAlign.left,
                         style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                        ),
+                            color: Colors.white,
+                            fontSize: 30,
+                            fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
                 ),
               ),
-              Expanded(
-                child: Container(
-                  margin: EdgeInsets.all(10),
-                  padding: EdgeInsets.symmetric(horizontal: 10),
-                  decoration: BoxDecoration(
-                    color: Color.fromARGB(255, 103, 4, 189),
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        child: Text(
-                          'Select \nAccount',
-                          //textAlign: TextAlign.left,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              )
             ],
           ),
           decoration: BoxDecoration(
@@ -153,7 +138,8 @@ class _HomeState extends State<Home> {
                   ),
                   Expanded(
                     child: ListView(
-                      children: recentTr(widget.expenses, widget.deleteExpense),
+                      children: recentExpenses(widget.expenses,
+                          widget.deleteExpense, widget.saveExpense),
                     ),
                   ),
                 ],
@@ -166,7 +152,8 @@ class _HomeState extends State<Home> {
   }
 }
 
-List<Widget> recentTr(Map<String, List<Expense>> tr, deleteExpense) {
+List<Widget> recentExpenses(
+    Map<String, List<Expense>> tr, deleteExpense, saveExpense) {
   int recentCount = 0;
   List<Widget> list = [];
 
@@ -177,19 +164,25 @@ List<Widget> recentTr(Map<String, List<Expense>> tr, deleteExpense) {
 
     if (value.isNotEmpty) {
       list.add(
-        Card(
+        Container(
           margin: const EdgeInsets.all(10),
-          child: Padding(
-            padding: const EdgeInsets.all(5),
-            child: Text(
-              '$key',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
+          padding: const EdgeInsets.all(5),
+          decoration: BoxDecoration(
+            color: const Color.fromARGB(255, 65, 65, 65),
+            borderRadius: BorderRadius.circular(10),
+            /*  gradient: LinearGradient(
+              colors: [
+                Colors.black,
+              ],
+            ),*/
+          ),
+          child: Text(
+            '$key',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
             ),
           ),
-          color: const Color.fromARGB(255, 65, 65, 65),
         ),
       );
       recentCount++;
@@ -199,6 +192,7 @@ List<Widget> recentTr(Map<String, List<Expense>> tr, deleteExpense) {
       list.add(ExpenseCard(
         expense: ex,
         deleteExpense: deleteExpense,
+        saveExpense: saveExpense,
       ));
     });
   });

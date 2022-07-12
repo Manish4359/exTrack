@@ -87,6 +87,7 @@ class _widState extends State<wid> {
           appBarTheme: AppBarTheme(
             titleTextStyle: TextStyle(fontFamily: 'Lato', fontSize: 20),
           ),
+          colorScheme: ColorScheme.fromSwatch(),
           fontFamily: 'Quicksand',
           scrollbarTheme: ScrollbarThemeData(
             crossAxisMargin: 3,
@@ -145,9 +146,9 @@ class _MyAppState extends State<MyApp> {
     _updateAmt();
   }
 
-  int selectedPageId = 2;
+  int selectedPageId = 0;
 
-  List<bool> bottomBarItemSelected = [false, false, true, false];
+  List<bool> bottomBarItemSelected = [true, false, false, false];
 
   void _changeSelectedItem(int pageId) {
     setState(() {
@@ -170,6 +171,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   _updateAmt() {
+    totalExpanseAmount = ExpensesData.getTotalExpenseAmount();
     availableAmount = _monthlyIncome - totalExpanseAmount;
 
     print('total expen updated:$totalExpanseAmount');
@@ -189,6 +191,13 @@ class _MyAppState extends State<MyApp> {
 
   _deleteExpenseFromMap(Expense ex) async {
     await ExpensesData.deleteExpense(ex);
+    this._updateAmt();
+    setState(() {});
+  }
+
+  _saveExpense(Map<String, dynamic> editExpense, DateTime date, int id) async {
+    await ExpensesData.editExpense(editExpense, date, id);
+    this._updateAmt();
     setState(() {});
   }
 
@@ -200,6 +209,7 @@ class _MyAppState extends State<MyApp> {
         viewExpenses: _selectPage,
         availableAmount: availableAmount,
         deleteExpense: _deleteExpenseFromMap,
+        saveExpense: _saveExpense,
       ),
       Chart(
         expenses: ExpensesData.expenses,
@@ -208,6 +218,7 @@ class _MyAppState extends State<MyApp> {
       UserAllExpenses(
         expenses: ExpensesData.expenses,
         deleteExpense: _deleteExpenseFromMap,
+        saveExpense: _saveExpense,
       ),
       Profile(userSigned: widget.userSigned),
     ];
@@ -298,9 +309,11 @@ class _MyAppState extends State<MyApp> {
             context,
             MaterialPageRoute(
               builder: (context) => AddExpense(
-                  addToList: this._addExpenseToMap,
-                  categorylist: Constants.CATEGORIES,
-                  deleteExpense: _deleteExpenseFromMap),
+                addToList: this._addExpenseToMap,
+                categorylist: Constants.CATEGORIES,
+                deleteExpense: _deleteExpenseFromMap,
+                saveExpense: _saveExpense,
+              ),
             ),
           );
         },

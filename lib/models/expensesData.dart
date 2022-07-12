@@ -124,7 +124,23 @@ class ExpensesData {
     }
   }
 
-  static editExpense() {}
+  static editExpense(
+      Map<String, dynamic> ex, DateTime expensesDate, int expenseId) {
+    String date = DateFormat.yMd().format(expensesDate);
+
+    if (expenses.containsKey(date)) {
+      expenses[date]!.forEach((expense) {
+        print('saving ${expenseId} ${expense.id}');
+        if (expense.id == expenseId) {
+          print('saved');
+
+          expense.title = ex['title'];
+          expense.amount = ex['amount'];
+          expense.category = ex['category'];
+        }
+      });
+    }
+  }
 
   static deleteExpense(Expense ex) {
     String date = DateFormat.yMd().format(ex.date);
@@ -134,7 +150,7 @@ class ExpensesData {
 
     expenses[date]!.remove(ex);
 
-    if (expenses[date] == []) {
+    if (expenses[date]!.length == 0) {
       expenses.remove(date);
     }
   }
