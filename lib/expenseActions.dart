@@ -1,28 +1,17 @@
-import 'package:extrack/customTextField.dart';
-import 'package:extrack/models/expensesData.dart';
-import 'package:extrack/userProfile.dart';
+import 'package:extrack/constant.dart';
+import 'package:extrack/widgets/customTextField.dart';
+import 'package:extrack/provider/expensesProvider.dart';
+import 'package:extrack/screens/userProfile.dart';
 import 'package:extrack/models/expense.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class AddExpense extends StatefulWidget {
-  Function addToList;
-  List<String> categorylist;
-  bool editExpense;
   Expense? editExpenseData;
-  Function deleteExpense;
-  Function saveExpense;
 
-  AddExpense({
-    Key? key,
-    required this.addToList,
-    required this.categorylist,
-    required this.deleteExpense,
-    required this.saveExpense,
-    this.editExpense = false,
-    this.editExpenseData,
-  }) : super(key: key);
+  AddExpense({Key? key, this.editExpenseData}) : super(key: key);
 
   @override
   State<AddExpense> createState() => _AddExpenseState();
@@ -34,11 +23,14 @@ class _AddExpenseState extends State<AddExpense> {
 
   int selectedCatId = 0;
   String amountType = 'debit';
+  bool editExpense = false;
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    if (widget.editExpense) {
+    if (widget.editExpenseData != null) {
+      editExpense = true;
       cardtitle.text = widget.editExpenseData!.title;
       cardAmount.text = (widget.editExpenseData!.amount).toString();
       amountType = widget.editExpenseData!.amountType;
@@ -47,10 +39,14 @@ class _AddExpenseState extends State<AddExpense> {
 
   @override
   Widget build(BuildContext context) {
+    print(widget.editExpenseData);
+    final expensesData = Provider.of<ExpensesProvider>(context);
+    List<String> categorylist = Constants.CATEGORIES;
+
     return Scaffold(
       appBar: AppBar(
-          //backgroundColor: Colors.black,
-          ),
+        backgroundColor: Theme.of(context).colorScheme.secondary,
+      ),
       body: Container(
         margin: EdgeInsets.all(5),
         padding: EdgeInsets.all(5),
@@ -85,10 +81,10 @@ class _AddExpenseState extends State<AddExpense> {
                 child: DropdownButtonFormField(
                   isExpanded: true,
                   isDense: false,
-                  value: widget.editExpense
-                      ? widget.categorylist.firstWhere((element) =>
+                  value: editExpense
+                      ? categorylist.firstWhere((element) =>
                           element == widget.editExpenseData!.category)
-                      : widget.categorylist[selectedCatId],
+                      : categorylist[selectedCatId],
 
                   dropdownColor: Color.fromARGB(255, 245, 247, 255),
                   borderRadius: BorderRadius.circular(10),
@@ -97,7 +93,7 @@ class _AddExpenseState extends State<AddExpense> {
                     border: UnderlineInputBorder(borderSide: BorderSide.none),
                   ),
                   // menuMaxHeight: 40,
-                  items: widget.categorylist
+                  items: categorylist
                       .map(
                         (category) => DropdownMenuItem(
                           value: category,
@@ -127,87 +123,54 @@ class _AddExpenseState extends State<AddExpense> {
                     setState(
                       () {
                         selectedCatId =
-                            widget.categorylist.indexOf(newCategory as String);
+                            categorylist.indexOf(newCategory as String);
                       },
                     );
                   },
                 ),
               ),
               SizedBox(height: 50),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  ElevatedButton(
-                    onPressed: () async {
-                      if (!widget.editExpense) {
-                        Expense newtr = Expense(
-                          title: cardtitle.text,
-                          amount: int.parse(cardAmount.text),
-                          date: DateTime.now(),
-                          amountType: 'debit',
-                          category: widget.categorylist[selectedCatId],
-                        );
-                        await widget.addToList(newtr);
-                      } else {
-                        Map<String, dynamic> editData = {
-                          'title': cardtitle.text,
-                          'amount': int.parse(cardAmount.text),
-                          'category': widget.categorylist[selectedCatId]
-                        };
-                        await widget.saveExpense(
-                            editData,
-                            widget.editExpenseData!.date,
-                            widget.editExpenseData!.id);
-                      }
+              ElevatedButton(
+                onPressed: () async {
+                  if (editExpense) {
+                    Map<String, dynamic> editData = {
+                      'id': widget.editExpenseData!.id,
+                      'amount': int.parse(cardAmount.text),
+                      'date': widget.editExpenseData!.date,
+                      'title': cardtitle.text,
+                      'category': categorylist[selectedCatId]
+                    };
 
-                      Navigator.pop(context);
-                    },
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all<Color>(
-                          Color.fromARGB(255, 65, 65, 65)),
-                      padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
-                          EdgeInsets.symmetric(horizontal: 20, vertical: 10)),
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                    ),
-                    child: Text(
-                      widget.editExpense ? 'Save Expense' : 'Add Expense',
-                      style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    await expensesData.editExpense(editData);
+                  } else {
+                    Expense newtr = Expense(
+                      title: cardtitle.text,
+                      amount: int.parse(cardAmount.text),
+                      date: DateTime.now(),
+                      amountType: 'debit',
+                      category: categorylist[selectedCatId],
+                    );
+                    await expensesData.addExpense(newtr);
+                  }
+
+                  Navigator.pop(context);
+                },
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all<Color>(
+                      Color.fromARGB(255, 65, 65, 65)),
+                  padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
+                      EdgeInsets.symmetric(horizontal: 20, vertical: 10)),
+                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
                     ),
                   ),
-                  widget.editExpense
-                      ? ElevatedButton(
-                          onPressed: () async {
-                            await widget.deleteExpense(widget.editExpenseData);
-                            Navigator.pop(context);
-                          },
-                          style: ButtonStyle(
-                            backgroundColor:
-                                MaterialStateProperty.all<Color>(Colors.red),
-                            padding:
-                                MaterialStateProperty.all<EdgeInsetsGeometry>(
-                                    EdgeInsets.symmetric(
-                                        horizontal: 20, vertical: 10)),
-                            shape: MaterialStateProperty.all<
-                                RoundedRectangleBorder>(
-                              RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                            ),
-                          ),
-                          child: Text(
-                            'Delete',
-                            style: TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold),
-                          ),
-                        )
-                      : SizedBox()
-                ],
-              )
+                ),
+                child: Text(
+                  editExpense ? 'Save Expense' : 'Add Expense',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
             ],
           ),
         ),

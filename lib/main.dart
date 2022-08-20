@@ -1,26 +1,28 @@
 import 'dart:convert';
 
 import 'package:extrack/expenseActions.dart';
-import 'package:extrack/splash.dart';
+import 'package:extrack/provider/expensesProvider.dart';
+import 'package:extrack/screens/viewExpense.dart';
+import 'package:extrack/widgets/splash.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_time_patterns.dart';
 import 'package:intl/intl.dart';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 
-import './chart.dart';
-import './home.dart';
-import 'userProfile.dart';
-import './settings.dart';
-import 'userAllExpenses.dart';
+import 'screens/chart.dart';
+import 'screens/home.dart';
+import 'screens/userProfile.dart';
+import 'screens/userAllExpenses.dart';
 
 import 'models/expense.dart';
-import './splash.dart';
-import './signinAndSignup.dart';
+import 'widgets/splash.dart';
+import 'screens/signinAndSignup.dart';
 
-import './models/expensesData.dart';
+import 'provider/expensesProvider.dart';
 import './constant.dart';
 
 // ...
@@ -76,18 +78,27 @@ class _widState extends State<wid> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return ChangeNotifierProvider(
+      create: (context) => ExpensesProvider(),
+      child: MaterialApp(
         initialRoute: '/',
         routes: {
           '/signup': (context) => SignUp(
                 userSigned: userSigned,
-              )
+              ),
+          '/signin': (context) => SignIn(userSigned: userSigned),
+          '/chart': (context) => SignIn(userSigned: userSigned),
+          //ViewExpense.routeName: (context) => ViewExpense()
         },
         theme: ThemeData(
           appBarTheme: AppBarTheme(
             titleTextStyle: TextStyle(fontFamily: 'Lato', fontSize: 20),
           ),
-          colorScheme: ColorScheme.fromSwatch(),
+          colorScheme:
+              ColorScheme.fromSwatch(primarySwatch: Colors.blue).copyWith(
+            primary: const Color.fromARGB(255, 231, 42, 42),
+            secondary: const Color.fromARGB(255, 65, 65, 65),
+          ),
           fontFamily: 'Quicksand',
           scrollbarTheme: ScrollbarThemeData(
             crossAxisMargin: 3,
@@ -107,9 +118,11 @@ class _widState extends State<wid> {
             }
             if (snapshot.hasData) {
               return signedin
-                  ? MyApp(
-                      userSigned: userSigned,
-                    )
+                  ? Consumer<ExpensesProvider>(
+                      builder: (context, expensesData, child) => MyApp(
+                            userSigned: userSigned,
+                            getTotalExpAmt: expensesData.getTotalExpenseAmount,
+                          ))
                   : SignIn(
                       userSigned: userSigned,
                     );
@@ -117,7 +130,9 @@ class _widState extends State<wid> {
 
             return SplashPage();
           },
-        ));
+        ),
+      ),
+    );
   }
 }
 
@@ -128,7 +143,9 @@ Future<bool> splash() async {
 
 class MyApp extends StatefulWidget {
   VoidCallback userSigned;
-  MyApp({Key? key, required this.userSigned}) : super(key: key);
+  Function getTotalExpAmt;
+  MyApp({Key? key, required this.userSigned, required this.getTotalExpAmt})
+      : super(key: key);
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -136,7 +153,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   double _monthlyIncome = 50000;
-  double totalExpanseAmount = ExpensesData.getTotalExpenseAmount();
+  late double totalExpanseAmount = widget.getTotalExpAmt();
   double availableAmount = 0;
 
   @override
@@ -171,18 +188,20 @@ class _MyAppState extends State<MyApp> {
   }
 
   _updateAmt() {
-    totalExpanseAmount = ExpensesData.getTotalExpenseAmount();
+    totalExpanseAmount = widget.getTotalExpAmt();
     availableAmount = _monthlyIncome - totalExpanseAmount;
 
     print('total expen updated:$totalExpanseAmount');
     print('avail amt updated:$availableAmount');
   }
 
+/*
   _addExpenseToMap(Expense ex) async {
     String exDate = DateFormat.yMd().format(ex.date);
 
-    await ExpensesData.addExpense(ex);
-    double newExpenseAmt = await ExpensesData.getMonthlyExpenseAmount(exDate);
+    await ExpensesProvider.addExpense(ex);
+    double newExpenseAmt =
+        await ExpensesProvider.getMonthlyExpenseAmount(exDate);
     setState(() {
       this.totalExpanseAmount = newExpenseAmt;
       this._updateAmt();
@@ -190,41 +209,33 @@ class _MyAppState extends State<MyApp> {
   }
 
   _deleteExpenseFromMap(Expense ex) async {
-    await ExpensesData.deleteExpense(ex);
+    await ExpensesProvider.deleteExpense(ex);
     this._updateAmt();
     setState(() {});
   }
 
   _saveExpense(Map<String, dynamic> editExpense, DateTime date, int id) async {
-    await ExpensesData.editExpense(editExpense, date, id);
+    await ExpensesProvider.editExpense(editExpense, date, id);
     this._updateAmt();
     setState(() {});
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {
+    final expenses = Provider.of<ExpensesProvider>(context);
+
     widgets = [
       Home(
-        expenses: ExpensesData.expenses,
         viewExpenses: _selectPage,
         availableAmount: availableAmount,
-        deleteExpense: _deleteExpenseFromMap,
-        saveExpense: _saveExpense,
       ),
-      Chart(
-        expenses: ExpensesData.expenses,
-        categorylist: Constants.CATEGORIES,
-      ),
-      UserAllExpenses(
-        expenses: ExpensesData.expenses,
-        deleteExpense: _deleteExpenseFromMap,
-        saveExpense: _saveExpense,
-      ),
+      Chart(),
+      UserAllExpenses(),
       Profile(userSigned: widget.userSigned),
     ];
     print('myapp rebuilt');
     return Scaffold(
-      //  backgroundColor: Colors.black,
+      //backgroundColor: Color.fromARGB(255, 231, 42, 42),
       /*
         drawer: Drawer(
           child: SafeArea(
@@ -263,40 +274,40 @@ class _MyAppState extends State<MyApp> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              customBottomBarItem(
-                Icons.home,
-                'Home',
-                _selectPage,
-                0,
-                _changeSelectedItem,
-                bottomBarItemSelected[0],
+              CustomBottomBarItem(
+                icon: Icons.home,
+                label: 'Home',
+                selectPage: _selectPage,
+                changeSelectedItem: _changeSelectedItem,
+                isSelected: bottomBarItemSelected[0],
+                selectPageId: 0,
               ),
-              customBottomBarItem(
-                Icons.donut_small_outlined,
-                'Chart',
-                _selectPage,
-                1,
-                _changeSelectedItem,
-                bottomBarItemSelected[1],
+              CustomBottomBarItem(
+                icon: Icons.donut_small_outlined,
+                label: 'Chart',
+                selectPage: _selectPage,
+                changeSelectedItem: _changeSelectedItem,
+                isSelected: bottomBarItemSelected[1],
+                selectPageId: 1,
               ),
               SizedBox(
                 width: 40,
               ),
-              customBottomBarItem(
-                Icons.list_alt_rounded,
-                'Expenses',
-                _selectPage,
-                2,
-                _changeSelectedItem,
-                bottomBarItemSelected[2],
+              CustomBottomBarItem(
+                icon: Icons.list_alt_rounded,
+                label: 'Expenses',
+                selectPage: _selectPage,
+                changeSelectedItem: _changeSelectedItem,
+                isSelected: bottomBarItemSelected[2],
+                selectPageId: 2,
               ),
-              customBottomBarItem(
-                Icons.person,
-                'Profile',
-                _selectPage,
-                3,
-                _changeSelectedItem,
-                bottomBarItemSelected[3],
+              CustomBottomBarItem(
+                icon: Icons.person,
+                label: 'Profile',
+                selectPage: _selectPage,
+                changeSelectedItem: _changeSelectedItem,
+                isSelected: bottomBarItemSelected[3],
+                selectPageId: 3,
               ),
             ],
           ),
@@ -308,12 +319,7 @@ class _MyAppState extends State<MyApp> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => AddExpense(
-                addToList: this._addExpenseToMap,
-                categorylist: Constants.CATEGORIES,
-                deleteExpense: _deleteExpenseFromMap,
-                saveExpense: _saveExpense,
-              ),
+              builder: (context) => AddExpense(),
             ),
           );
         },
@@ -322,7 +328,8 @@ class _MyAppState extends State<MyApp> {
           height: 60,
           width: 60,
           decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(60), color: Colors.black),
+              borderRadius: BorderRadius.circular(60),
+              color: Theme.of(context).colorScheme.secondary),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -346,40 +353,63 @@ Future<double> getTotalExpense(Map<String, List<Expense>> tr) async {
   return amount;
 }
 
-Container customBottomBarItem(IconData icon, String label, Function selectPage,
-    int selectPageId, Function changeSelectedItem, bool isSelected) {
-  return Container(
-    margin: const EdgeInsets.all(5),
-    alignment: Alignment.center,
-    child: ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-        ),
-        padding: EdgeInsets.all(5),
-        primary: isSelected ? Colors.black : Colors.white,
-        elevation: isSelected ? 10 : 0,
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            color: isSelected ? Colors.white : Colors.black,
+class CustomBottomBarItem extends StatelessWidget {
+  IconData icon;
+  String label;
+  Function selectPage;
+  int selectPageId;
+  Function changeSelectedItem;
+  bool isSelected;
+  CustomBottomBarItem({
+    Key? key,
+    required this.icon,
+    required this.label,
+    required this.selectPage,
+    required this.changeSelectedItem,
+    required this.isSelected,
+    required this.selectPageId,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.all(5),
+      alignment: Alignment.center,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
           ),
-          Text(
-            label,
-            style: TextStyle(
-              color: isSelected ? Colors.white : Colors.black,
-              fontSize: 12,
+          padding: EdgeInsets.all(5),
+          primary:
+              isSelected ? Theme.of(context).colorScheme.primary : Colors.white,
+          elevation: isSelected ? 10 : 0,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              color: isSelected
+                  ? Colors.white
+                  : Theme.of(context).colorScheme.secondary,
             ),
-          )
-        ],
+            Text(
+              label,
+              style: TextStyle(
+                  color: isSelected
+                      ? Colors.white
+                      : Theme.of(context).colorScheme.secondary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold),
+            )
+          ],
+        ),
+        onPressed: () {
+          selectPage(selectPageId);
+          changeSelectedItem(selectPageId);
+        },
       ),
-      onPressed: () {
-        selectPage(selectPageId);
-        changeSelectedItem(selectPageId);
-      },
-    ),
-  );
+    );
+  }
 }
