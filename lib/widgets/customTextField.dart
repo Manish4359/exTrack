@@ -27,11 +27,11 @@ class _CustomTextFieldState extends State<CustomTextField> {
   Widget build(BuildContext context) {
     return Container(
       //margin: EdgeInsets.all(10),
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: Color.fromARGB(255, 255, 255, 255),
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: Color.fromARGB(255, 237, 237, 237),
             offset: Offset(0, 2),
@@ -43,7 +43,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
       child: TextField(
         obscureText: widget.obscureText ? showText : false,
         decoration: InputDecoration(
-          border: UnderlineInputBorder(borderSide: BorderSide.none),
+          border: const UnderlineInputBorder(borderSide: BorderSide.none),
           hintText: widget.hintText,
           prefixIcon: Icon(widget.icon),
           suffixIcon: widget.obscureText
@@ -57,7 +57,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
                 )
               : null,
           //  suffixIcon: Icon(Icons.lock),
-          hintStyle: TextStyle(
+          hintStyle: const TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
@@ -66,7 +66,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
         cursorColor: Colors.black,
         controller: widget.controller,
         keyboardType: widget.keyboardType,
-        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
       ),
     );
   }

@@ -3,6 +3,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:provider/provider.dart';
+import '../provider/expensesProvider.dart';
 import '../widgets/customTextField.dart';
 /*
 class SignInAndSignUp extends StatefulWidget {
@@ -65,6 +67,9 @@ class _SignUpState extends State<SignUp> {
 
   @override
   Widget build(BuildContext context) {
+    final loadUserExpenses =
+        Provider.of<ExpensesProvider>(context).loadAllExpenses;
+
     return Scaffold(
       appBar: AppBar(),
       //backgroundColor: Colors.yellow,
@@ -141,8 +146,12 @@ class _SignUpState extends State<SignUp> {
                             email: emailController.text,
                             password: passController.text,
                           );
+
                           print(credential.user);
                           widget.userSigned();
+
+                          //load data from firebase
+                          loadUserExpenses();
                           Navigator.pop(context);
                         } catch (e) {
                           print(e);
@@ -193,6 +202,9 @@ class _SignInState extends State<SignIn> {
   String password = '';
   @override
   Widget build(BuildContext context) {
+    final loadUserExpenses =
+        Provider.of<ExpensesProvider>(context).loadAllExpenses;
+
     return Scaffold(
       //backgroundColor: Colors.yellow,
       body: SafeArea(
@@ -258,13 +270,15 @@ class _SignInState extends State<SignIn> {
                         try {
                           final credential = await FirebaseAuth.instance
                               .signInWithEmailAndPassword(
-                            email: 'admin@gmail.com',
-                            password: 'qwerty@123',
+                            email: emailController.text,
+                            password: passController.text,
                           );
 
                           print(credential.user);
 
                           if (credential.user != null) {
+                            //load data
+                            loadUserExpenses();
                             widget.userSigned();
                           }
                         } catch (e) {

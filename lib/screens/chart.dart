@@ -1,7 +1,4 @@
-import 'package:extrack/main.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart';
 import 'package:intl/intl.dart';
 
 import 'package:pie_chart/pie_chart.dart';
@@ -12,7 +9,7 @@ import '../constant.dart';
 import '../provider/expensesProvider.dart';
 
 class Chart extends StatefulWidget {
-  Chart({Key? key}) : super(key: key);
+  const Chart({Key? key}) : super(key: key);
 
   @override
   State<Chart> createState() => _ChartState();
@@ -44,8 +41,9 @@ class _ChartState extends State<Chart> {
       List<String> list, Map<String, double> countMap) async {
     Map<String, double> map = {};
     await Future.forEach(list, (String cat) {
-      if (countMap[cat] != 0)
+      if (countMap[cat] != 0) {
         map.addEntries([MapEntry(cat, countMap[cat] ?? 0)]);
+      }
     });
     chartDataMap = map;
   }
@@ -65,8 +63,9 @@ class _ChartState extends State<Chart> {
       for (int i = 0; i < 12; i++) {
         if (monthId == (i + 1)) {
           btnSelected[i] = true;
-        } else
+        } else {
           btnSelected[i] = false;
+        }
       }
     });
   }
@@ -80,18 +79,22 @@ class _ChartState extends State<Chart> {
 
   Color selectedColor = Colors.black;
 
-  void _goToElement(int index) {
-    if (index <= 3) return;
-    scrolljump.animateTo(
-      (75.0 *
-          (index -
-              3)), // 100 is the height of container and index of 6th element is 5
-      duration: const Duration(milliseconds: 500),
-      curve: Curves.easeIn,
-    );
-  }
-
   Map<String, double> chartDataMap = {};
+
+  String selectedDate = DateFormat.yMd().format(DateTime.now());
+  Future<void> datePicker() async {
+    DateTime? picked = await showDatePicker(
+        context: context,
+        initialDate: DateFormat.yMd().parse(selectedDate),
+        firstDate: DateFormat.yMd().parse('1/1/2020'),
+        lastDate: DateFormat.yMd().parse('31/12/2100'));
+
+    if (picked != null && picked != selectedDate) {
+      setState(() {
+        selectedDate = DateFormat.yMd().format(picked);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -103,18 +106,60 @@ class _ChartState extends State<Chart> {
 
     getChartDataMap(categorylist, count);
 
-    print(chartDataMap.isEmpty);
+    //print(chartDataMap.isEmpty);
+
     getChartData(
         expenses, monthId, updatedatamap, getChartDataMap, categorylist);
-    Future.delayed(Duration.zero, () => _goToElement(monthId));
 
-    print(monthId);
+    //print(monthId);
 
     return Scaffold(
       // appBar: AppBar(),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                flex: 4,
+                child: Container(
+                  decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 58, 58, 58),
+                      borderRadius: BorderRadius.circular(20)),
+                  padding: const EdgeInsets.all(5),
+                  child: Text(
+                    '${DateFormat.yMMMM().format(DateFormat.yMd().parse(selectedDate))}',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Colors.white),
+                  ),
+                ),
+              ),
+              const SizedBox(
+                width: 10,
+              ),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    datePicker();
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                        color: const Color.fromARGB(255, 113, 189, 255),
+                        borderRadius: BorderRadius.circular(20)),
+                    padding: const EdgeInsets.all(5),
+                    child: const Icon(
+                      Icons.calendar_month,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          /*
           Container(
             height: 40,
             child: ListView(
@@ -146,13 +191,13 @@ class _ChartState extends State<Chart> {
                   )
                   .toList(),
             ),
-          ),
+          ),*/
           FutureBuilder(
             future: getChartDataMap(categorylist, count),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.done) {
                 return expenseTotal == 0
-                    ? Text('NO EXPENSES FOUND')
+                    ? const Text('NO EXPENSES FOUND')
                     : Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
@@ -162,12 +207,12 @@ class _ChartState extends State<Chart> {
                             margin: const EdgeInsets.all(5),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(10),
-                              color: Color.fromARGB(255, 65, 65, 65),
+                              color: const Color.fromARGB(255, 65, 65, 65),
                             ),
                             child: PieChart(
                               chartLegendSpacing: 20,
                               ringStrokeWidth: 30,
-                              legendOptions: LegendOptions(
+                              legendOptions: const LegendOptions(
                                   // legendShape: BoxShape.rectangle,
                                   showLegendsInRow: true,
                                   legendPosition: LegendPosition.top,
@@ -175,7 +220,7 @@ class _ChartState extends State<Chart> {
                                       TextStyle(color: Colors.white)),
                               formatChartValues: (double v) =>
                                   '${(v * 100 / expenseTotal).round()}%',
-                              chartValuesOptions: ChartValuesOptions(
+                              chartValuesOptions: const ChartValuesOptions(
                                   decimalPlaces: 0,
                                   showChartValuesOutside: true),
                               animationDuration: Duration(seconds: 1),
@@ -191,10 +236,6 @@ class _ChartState extends State<Chart> {
                               child: ListView.builder(
                                 itemCount: categorylist.length,
                                 itemBuilder: (context, id) {
-                                  print(categorylist[id] +
-                                      " " +
-                                      "${chartDataMap.containsKey(categorylist[id])}");
-
                                   if (chartDataMap
                                       .containsKey(categorylist[id])) {
                                     return getCategoryData(
@@ -203,7 +244,7 @@ class _ChartState extends State<Chart> {
                                       context,
                                     );
                                   } else {
-                                    return SizedBox();
+                                    return const SizedBox();
                                   }
                                 },
                               ),
@@ -213,7 +254,7 @@ class _ChartState extends State<Chart> {
                       );
               }
 
-              return CircularProgressIndicator();
+              return const CircularProgressIndicator();
             },
           ),
         ],
@@ -281,7 +322,7 @@ void getChartData(Map<String, List<Expense>> expense, int monthid,
 
   double total = 0;
 
-  print('$food-$others-$cloth-$entertainment');
+  //print('$food-$others-$cloth-$entertainment');
   Map<String, double> datamap = {
     'food': food,
     'cloth': cloth,

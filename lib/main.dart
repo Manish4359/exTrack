@@ -1,12 +1,8 @@
-import 'dart:convert';
-
 import 'package:extrack/expenseActions.dart';
 import 'package:extrack/provider/expensesProvider.dart';
-import 'package:extrack/screens/viewExpense.dart';
 import 'package:extrack/widgets/splash.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/date_time_patterns.dart';
 import 'package:intl/intl.dart';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -23,7 +19,6 @@ import 'widgets/splash.dart';
 import 'screens/signinAndSignup.dart';
 
 import 'provider/expensesProvider.dart';
-import './constant.dart';
 
 // ...
 /*
@@ -42,6 +37,7 @@ void main() async {
     if (user == null) {
       print('User is currently signed out!');
     } else {
+      print(user.uid);
       print('User is signed in!');
     }
   });
@@ -91,7 +87,7 @@ class _widState extends State<wid> {
           //ViewExpense.routeName: (context) => ViewExpense()
         },
         theme: ThemeData(
-          appBarTheme: AppBarTheme(
+          appBarTheme: const AppBarTheme(
             titleTextStyle: TextStyle(fontFamily: 'Lato', fontSize: 20),
           ),
           colorScheme:
@@ -106,7 +102,7 @@ class _widState extends State<wid> {
             radius: const Radius.circular(50),
             thickness: MaterialStateProperty.all(5),
             thumbColor: MaterialStateProperty.all(
-              Color.fromARGB(255, 56, 56, 56),
+              const Color.fromARGB(255, 56, 56, 56),
             ),
           ),
         ),
@@ -114,7 +110,7 @@ class _widState extends State<wid> {
           future: splash(),
           builder: (BuildContext context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return SplashPage();
+              return const SplashPage();
             }
             if (snapshot.hasData) {
               return signedin
@@ -128,7 +124,7 @@ class _widState extends State<wid> {
                     );
             }
 
-            return SplashPage();
+            return const SplashPage();
           },
         ),
       ),
@@ -290,7 +286,7 @@ class _MyAppState extends State<MyApp> {
                 isSelected: bottomBarItemSelected[1],
                 selectPageId: 1,
               ),
-              SizedBox(
+              const SizedBox(
                 width: 40,
               ),
               CustomBottomBarItem(
@@ -380,7 +376,7 @@ class CustomBottomBarItem extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
           ),
-          padding: EdgeInsets.all(5),
+          padding: const EdgeInsets.all(5),
           primary:
               isSelected ? Theme.of(context).colorScheme.primary : Colors.white,
           elevation: isSelected ? 10 : 0,

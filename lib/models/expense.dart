@@ -6,7 +6,8 @@ class Expense {
   String title;
   final DateTime date;
   String category;
-  final int id = DateTime.now()
+
+  int id = DateTime.now()
       .difference(DateTime(2022, DateTime.january, 1))
       .inMicroseconds;
 
@@ -17,4 +18,8 @@ class Expense {
     required this.category,
     required this.amountType,
   });
+
+  setId(id) {
+    this.id = id;
+  }
 }

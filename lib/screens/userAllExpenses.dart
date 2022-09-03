@@ -8,7 +8,7 @@ import '../widgets/expenseCard.dart';
 import '../models/expense.dart';
 
 class UserAllExpenses extends StatefulWidget {
-  UserAllExpenses({
+  const UserAllExpenses({
     Key? key,
   }) : super(key: key);
 
@@ -40,7 +40,7 @@ class _UserAllExpensesState extends State<UserAllExpenses> {
     return Scaffold(
       body: SafeArea(
         child: Container(
-          margin: EdgeInsets.all(10),
+          margin: const EdgeInsets.all(10),
           child: Column(
             children: [
               Row(
@@ -50,20 +50,20 @@ class _UserAllExpensesState extends State<UserAllExpenses> {
                     flex: 4,
                     child: Container(
                       decoration: BoxDecoration(
-                          color: Color.fromARGB(255, 58, 58, 58),
+                          color: const Color.fromARGB(255, 58, 58, 58),
                           borderRadius: BorderRadius.circular(20)),
-                      padding: EdgeInsets.all(10),
+                      padding: const EdgeInsets.all(10),
                       child: Text(
                         '${DateFormat.EEEE().format(DateFormat.yMd().parse(selectedDate))},${DateFormat.yMMMMd().format(DateFormat.yMd().parse(selectedDate))}',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                             color: Colors.white),
                       ),
                     ),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     width: 20,
                   ),
                   Expanded(
@@ -73,10 +73,10 @@ class _UserAllExpensesState extends State<UserAllExpenses> {
                       },
                       child: Container(
                         decoration: BoxDecoration(
-                            color: Color.fromARGB(255, 113, 189, 255),
+                            color: const Color.fromARGB(255, 113, 189, 255),
                             borderRadius: BorderRadius.circular(20)),
-                        padding: EdgeInsets.all(10),
-                        child: Icon(
+                        padding: const EdgeInsets.all(10),
+                        child: const Icon(
                           Icons.calendar_month,
                         ),
                       ),
@@ -84,7 +84,7 @@ class _UserAllExpensesState extends State<UserAllExpenses> {
                   ),
                 ],
               ),
-              SizedBox(
+              const SizedBox(
                 height: 40,
               ),
               Expanded(
@@ -118,7 +118,7 @@ List<Widget> monthlyExpense(
       ));
     });
   } else {
-    list.add(Text('No Data Found!!'));
+    list.add(const Text('No Data Found!!'));
   }
 
   return list;

@@ -1,11 +1,8 @@
 import 'package:extrack/constant.dart';
 import 'package:extrack/widgets/customTextField.dart';
 import 'package:extrack/provider/expensesProvider.dart';
-import 'package:extrack/screens/userProfile.dart';
 import 'package:extrack/models/expense.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class AddExpense extends StatefulWidget {
@@ -25,6 +22,26 @@ class _AddExpenseState extends State<AddExpense> {
   String amountType = 'debit';
   bool editExpense = false;
 
+  Widget loader({text, addingData}) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          text,
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        SizedBox(
+          width: 20,
+        ),
+        addingData
+            ? CircularProgressIndicator(
+                strokeWidth: 2,
+              )
+            : SizedBox()
+      ],
+    );
+  }
+
   @override
   void initState() {
     // TODO: implement initState
@@ -37,6 +54,7 @@ class _AddExpenseState extends State<AddExpense> {
     }
   }
 
+  bool addingData = false;
   @override
   Widget build(BuildContext context) {
     print(widget.editExpenseData);
@@ -48,22 +66,22 @@ class _AddExpenseState extends State<AddExpense> {
         backgroundColor: Theme.of(context).colorScheme.secondary,
       ),
       body: Container(
-        margin: EdgeInsets.all(5),
-        padding: EdgeInsets.all(5),
+        margin: const EdgeInsets.all(5),
+        padding: const EdgeInsets.all(5),
         height: double.infinity,
         child: SingleChildScrollView(
           child: Column(
             //mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               CustomTextField(
                 controller: cardAmount,
                 hintText: 'Add an amount',
                 icon: Icons.currency_rupee_rounded,
                 keyboardType: TextInputType.number,
               ),
-              SizedBox(
+              const SizedBox(
                 height: 50,
               ),
               CustomTextField(
@@ -71,12 +89,12 @@ class _AddExpenseState extends State<AddExpense> {
                 hintText: 'Add a title',
                 icon: Icons.edit_note,
               ),
-              SizedBox(height: 50),
+              const SizedBox(height: 50),
               Container(
                 height: 70,
                 width: 200,
                 alignment: Alignment.center,
-                margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 // width: 200,
                 child: DropdownButtonFormField(
                   isExpanded: true,
@@ -86,9 +104,9 @@ class _AddExpenseState extends State<AddExpense> {
                           element == widget.editExpenseData!.category)
                       : categorylist[selectedCatId],
 
-                  dropdownColor: Color.fromARGB(255, 245, 247, 255),
+                  dropdownColor: const Color.fromARGB(255, 245, 247, 255),
                   borderRadius: BorderRadius.circular(10),
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     contentPadding: EdgeInsets.all(0),
                     border: UnderlineInputBorder(borderSide: BorderSide.none),
                   ),
@@ -106,7 +124,7 @@ class _AddExpenseState extends State<AddExpense> {
                                   'assets/images/$category.png',
                                   height: 30,
                                 ),
-                                SizedBox(
+                                const SizedBox(
                                   width: 20,
                                 ),
                                 Text(
@@ -129,9 +147,13 @@ class _AddExpenseState extends State<AddExpense> {
                   },
                 ),
               ),
-              SizedBox(height: 50),
+              const SizedBox(height: 50),
               ElevatedButton(
                 onPressed: () async {
+                  setState(() {
+                    addingData = true;
+                  });
+
                   if (editExpense) {
                     Map<String, dynamic> editData = {
                       'id': widget.editExpenseData!.id,
@@ -157,19 +179,24 @@ class _AddExpenseState extends State<AddExpense> {
                 },
                 style: ButtonStyle(
                   backgroundColor: MaterialStateProperty.all<Color>(
-                      Color.fromARGB(255, 65, 65, 65)),
+                      const Color.fromARGB(255, 65, 65, 65)),
                   padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
-                      EdgeInsets.symmetric(horizontal: 20, vertical: 10)),
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10)),
                   shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                     RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
                   ),
                 ),
-                child: Text(
-                  editExpense ? 'Save Expense' : 'Add Expense',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
+                child: editExpense
+                    ? loader(
+                        text: 'Save Expense',
+                        addingData: addingData,
+                      )
+                    : loader(
+                        text: 'Add Expense',
+                        addingData: addingData,
+                      ),
               ),
             ],
           ),

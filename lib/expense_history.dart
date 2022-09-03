@@ -1,2 +1,0 @@
-// transaction history/ 
-//expense history

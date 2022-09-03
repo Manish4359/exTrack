@@ -1,137 +1,136 @@
+import 'dart:convert';
+import 'dart:math';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
-
 import '../models/expense.dart';
 
+FirebaseFirestore db = FirebaseFirestore.instance;
+FirebaseAuth auth = FirebaseAuth.instance;
+
+//final uid = auth.currentUser?.uid;
+final CollectionReference = db.collection('users');
+
 class ExpensesProvider with ChangeNotifier {
-  Map<String, List<Expense>> _expenses = {
-    '8/19/2022': [
-      Expense(
-        amount: 50,
-        date: DateFormat.yMd().parse('8/19/2022'),
-        title: 'purchased milk',
-        category: 'food',
-        amountType: 'debit',
-      ),
-      Expense(
-        amount: 550,
-        date: DateFormat.yMd().parse('8/19/2022'),
-        title: 'bought battlefield 5',
-        amountType: 'debit',
-        category: 'entertainment',
-      ),
-      Expense(
-          amount: 1400,
-          amountType: 'debit',
-          date: DateFormat.yMd().parse('8/19/2022'),
-          title: 'watched doctor strange in imax',
-          category: 'entertainment'),
-      Expense(
-          amount: 290,
-          amountType: 'debit',
-          date: DateFormat.yMd().parse('8/19/2022'),
-          title: 'bought polo tshirt',
-          category: 'cloth'),
-      Expense(
-          amount: 110,
-          date: DateFormat.yMd().parse('8/19/2022'),
-          title: 'bike petrol 1L',
-          amountType: 'debit',
-          category: 'others'),
-      Expense(
-          amount: 652,
-          date: DateFormat.yMd().parse('8/19/2022'),
-          amountType: 'debit',
-          title: 'bought medicine ',
-          category: 'gift'),
-      Expense(
-          amount: 540,
-          date: DateFormat.yMd().parse('8/19/2022'),
-          title: 'ordered via zomato',
-          amountType: 'debit',
-          category: 'shopping'),
-      Expense(
-        amount: 520,
-        date: DateFormat.yMd().parse('8/19/2022'),
-        title: 'bought jeans(black)',
-        amountType: 'debit',
-        category: 'cloth',
-      ),
-      Expense(
-        amount: 2220,
-        date: DateFormat.yMd().parse('8/19/2022'),
-        title: 'zomato refund',
-        amountType: 'credit',
-        category: 'travel',
-      ),
-    ],
-    '7/3/2022': [
-      Expense(
-        amount: 2220,
-        date: DateFormat.yMd().parse('7/3/2022'),
-        title: 'zomato refund',
-        amountType: 'credit',
-        category: 'bills',
-      ),
-      Expense(
-          amount: 652,
-          date: DateFormat.yMd().parse('7/3/2022'),
-          amountType: 'debit',
-          title: 'bought medicine ',
-          category: 'gift'),
-      Expense(
-          amount: 540,
-          date: DateFormat.yMd().parse('7/3/2022'),
-          title: 'ordered via zomato',
-          amountType: 'debit',
-          category: 'shopping'),
-      Expense(
-        amount: 520,
-        date: DateFormat.yMd().parse('7/3/2022'),
-        title: 'bought jeans(black)',
-        amountType: 'debit',
-        category: 'cloth',
-      ),
-    ],
-    '2/13/2022': [
-      Expense(
-        amount: 2220,
-        date: DateFormat.yMd().parse('2/13/2022'),
-        title: 'bhimupi refund',
-        amountType: 'credit',
-        category: 'others',
-      ),
-    ],
-    '7/6/2022': [
-      Expense(
-        amount: 2220,
-        date: DateFormat.yMd().parse('7/6/2022'),
-        title: 'googlepay refund',
-        amountType: 'credit',
-        category: 'others',
-      ),
-    ],
-  };
+  final userName = auth.currentUser?.displayName;
+  final usermail = auth.currentUser?.email;
+
+  fn(Expense ex) async {
+    // Create a new user with a first and last name
+
+    /*
+    final user = <String, dynamic>{
+      "mail": usermail,
+      "last": "Lovelace",
+      "born": [Random().nextInt(100)]
+    };
+    */
+    final userName = auth.currentUser?.displayName;
+    final usermail = auth.currentUser?.email;
+    final uid = auth.currentUser?.uid;
+    final CollectionReference = db.collection('users');
+
+    var map = objToMap(ex);
+    print(map);
+    print(mapToJson(map));
+
+    var date = DateFormat.yMd().format(ex.date);
+    date = date.replaceAll(RegExp('/'), '-');
+
+// Add a new document with a generated ID
+    CollectionReference.doc(uid).collection(date).add(map);
+  }
+
+  Map<String, List<Expense>> _expenses = {};
+
+  objToMap(Expense ex) {
+    return {
+      'id': ex.id,
+      'amount': ex.amount,
+      'date': DateFormat.yMd().format(ex.date),
+      'title': ex.title,
+      'amountType': ex.amountType,
+      'category': ex.category,
+    };
+  }
+
+  mapToObj(Map<String, dynamic> ex) {
+    Expense expense = Expense(
+        amount: ex['amount'],
+        date: DateFormat.yMd().parse(ex['date']),
+        title: ex['title'],
+        category: ex['category'],
+        amountType: ex['amountType']);
+
+    expense.setId(ex['id']);
+
+    return expense;
+  }
+
+  mapToJson(map) {
+    return jsonEncode(map);
+  }
+
+  loadAllExpenses() async {
+    final uid = auth.currentUser?.uid;
+    final userData = await CollectionReference.doc(uid)
+        .get()
+        .then((snapshot) => snapshot.data());
+
+    _expenses = {};
+    userData?.forEach((date, list) {
+      List<Expense> exList = [];
+      list.forEach((element) => exList.add(mapToObj(element)));
+      _expenses.addEntries([MapEntry(date, exList)]);
+    });
+  }
 
   getAllExpense() {
+    loadAllExpenses();
     return {..._expenses};
   }
 
-  addExpense(ex) {
+  addExpense(ex) async {
+    final uid = auth.currentUser?.uid;
     String exDate = DateFormat.yMd().format(ex.date);
+    var map = objToMap(ex);
+    print(map);
+    print(mapToJson(map));
 
+    final data = await CollectionReference.doc(uid)
+        .get()
+        .then((value) => value.data()?[exDate]);
+
+    if (data == null) {
+      await CollectionReference.doc(uid).set({
+        exDate: [map]
+      });
+    } else {
+      await CollectionReference.doc(uid).set({
+        exDate: [map, ...data]
+      });
+    }
+    await loadAllExpenses();
+    print("added");
+
+    /*
     if (_expenses.containsKey(exDate)) {
       _expenses[exDate]?.insert(0, ex);
     } else {
       _expenses.addEntries([
         MapEntry(exDate, [ex])
       ]);
-    }
+    } */
+
     notifyListeners();
   }
 
   editExpense(Map<String, dynamic> ex) {
     String date = DateFormat.yMd().format(ex['date']);
+
+    // CollectionReference.doc(uid).collection(exDate).doc(ex.id).
 
     if (_expenses.containsKey(date)) {
       _expenses[date]!.forEach(
@@ -150,17 +149,21 @@ class ExpensesProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  deleteExpense(Expense ex) {
+  deleteExpense(Expense ex) async {
+    final uid = auth.currentUser?.uid;
     String date = DateFormat.yMd().format(ex.date);
     print(date + " " + '${_expenses.containsKey(date)}');
 
     print('${ex.id} ${ex.title}');
 
+    CollectionReference.doc(uid).collection(date);
+    /*
     _expenses[date]!.remove(ex);
 
-    if (_expenses[date]!.length == 0) {
+    if (_expenses[date]!.isEmpty) {
       _expenses.remove(date);
     }
+    */
     notifyListeners();
   }
 
