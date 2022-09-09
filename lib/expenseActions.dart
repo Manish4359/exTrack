@@ -155,6 +155,7 @@ class _AddExpenseState extends State<AddExpense> {
                   });
 
                   if (editExpense) {
+                    print('editing');
                     Map<String, dynamic> editData = {
                       'id': widget.editExpenseData!.id,
                       'amount': int.parse(cardAmount.text),
