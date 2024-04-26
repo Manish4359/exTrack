@@ -12,6 +12,7 @@ import '../widgets/expenseCard.dart';
 class Home extends StatefulWidget {
   Function viewExpenses;
   double availableAmount;
+  static const routeName = '/home';
 
   Home({
     Key? key,
@@ -31,7 +32,8 @@ class _HomeState extends State<Home> {
     // var deviceData = MediaQuery.of(context);
     final expensesData = Provider.of<ExpensesProvider>(context);
     final Map<String, List<Expense>> expenses = expensesData.getAllExpense();
-
+    final double availableBal =
+        expensesData.maxAmt - expensesData.totalExpenseAmt;
     return FutureBuilder(
         future: Future.delayed(const Duration(milliseconds: 100)),
         builder: ((context, snapshot) {
@@ -88,7 +90,8 @@ class _HomeState extends State<Home> {
                                       fontWeight: FontWeight.bold),
                                 ),
                                 Text(
-                                  '₹${widget.availableAmount}',
+                                  // '₹${widget.availableAmount}',
+                                  '₹${availableBal}',
                                   //textAlign: TextAlign.left,
                                   style: const TextStyle(
                                       color: Colors.white,

@@ -124,6 +124,7 @@ class _ChartState extends State<Chart> {
               Expanded(
                 flex: 4,
                 child: Container(
+                  margin: EdgeInsets.all(5),
                   decoration: BoxDecoration(
                       color: const Color.fromARGB(255, 58, 58, 58),
                       borderRadius: BorderRadius.circular(20)),
@@ -138,22 +139,19 @@ class _ChartState extends State<Chart> {
                   ),
                 ),
               ),
-              const SizedBox(
-                width: 10,
-              ),
               Expanded(
                 child: GestureDetector(
                   onTap: () {
                     datePicker();
                   },
                   child: Container(
+                    margin: EdgeInsets.all(5),
                     decoration: BoxDecoration(
                         color: const Color.fromARGB(255, 113, 189, 255),
                         borderRadius: BorderRadius.circular(20)),
                     padding: const EdgeInsets.all(5),
-                    child: const Icon(
-                      Icons.calendar_month,
-                    ),
+                    child:
+                        const Icon(Icons.calendar_month, color: Colors.white),
                   ),
                 ),
               ),
@@ -202,7 +200,7 @@ class _ChartState extends State<Chart> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Container(
-                            height: MediaQuery.of(context).size.height * 0.3,
+                            height: MediaQuery.of(context).size.height * 0.25,
                             padding: const EdgeInsets.all(15),
                             margin: const EdgeInsets.all(5),
                             decoration: BoxDecoration(

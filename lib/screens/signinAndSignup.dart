@@ -1,4 +1,5 @@
 import 'package:extrack/main.dart';
+import 'package:extrack/screens/home.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -43,7 +44,11 @@ class MyCustomClipper extends CustomClipper<Path> {
 
 class SignUp extends StatefulWidget {
   VoidCallback userSigned;
-  SignUp({Key? key, required this.userSigned}) : super(key: key);
+  static const routeName = '/signup';
+  SignUp({
+    Key? key,
+    required this.userSigned,
+  }) : super(key: key);
 
   @override
   State<SignUp> createState() => _SignUpState();
@@ -67,8 +72,7 @@ class _SignUpState extends State<SignUp> {
 
   @override
   Widget build(BuildContext context) {
-    final loadUserExpenses =
-        Provider.of<ExpensesProvider>(context).loadAllExpenses;
+    final expenseProvider = Provider.of<ExpensesProvider>(context);
 
     return Scaffold(
       appBar: AppBar(),
@@ -113,12 +117,16 @@ class _SignUpState extends State<SignUp> {
               SizedBox(
                 height: 20,
               ),
-
               Container(
                 margin: EdgeInsets.all(10),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    SkipButton(
+                      getTotalExpenseAmount:
+                          expenseProvider.getTotalExpenseAmount,
+                      guestLoggedin: expenseProvider.guestLoggedIn,
+                    ),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(primary: Colors.black),
                       child: Row(
@@ -146,23 +154,23 @@ class _SignUpState extends State<SignUp> {
                             email: emailController.text,
                             password: passController.text,
                           );
-
+                          await FirebaseAuth.instance.currentUser
+                              ?.updateDisplayName('$nameController');
                           print(credential.user);
                           widget.userSigned();
 
                           //load data from firebase
-                          loadUserExpenses();
+                          expenseProvider.getAllExpense();
                           Navigator.pop(context);
                         } catch (e) {
                           print(e);
                           print('errrr');
                         }
                       },
-                    )
+                    ),
                   ],
                 ),
               ),
-              // Text('Don\'t have an account ? Create')
             ],
           ),
         ),
@@ -171,9 +179,47 @@ class _SignUpState extends State<SignUp> {
   }
 }
 
+class SkipButton extends StatelessWidget {
+  VoidCallback getTotalExpenseAmount;
+  VoidCallback guestLoggedin;
+  SkipButton(
+      {Key? key,
+      required this.getTotalExpenseAmount,
+      required this.guestLoggedin})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(primary: Colors.black),
+      child: Text(
+        'Login as Guest',
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
+      onPressed: () {
+        guestLoggedin();
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MyApp(
+              userSigned: () {},
+              //   getTotalExpAmt: getTotalExpenseAmount,
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 class SignIn extends StatefulWidget {
   VoidCallback userSigned;
-  SignIn({Key? key, required this.userSigned}) : super(key: key);
+  static const routeName = '/signin';
+
+  SignIn({
+    Key? key,
+    required this.userSigned,
+  }) : super(key: key);
 
   @override
   State<SignIn> createState() => _SignInState();
@@ -202,8 +248,7 @@ class _SignInState extends State<SignIn> {
   String password = '';
   @override
   Widget build(BuildContext context) {
-    final loadUserExpenses =
-        Provider.of<ExpensesProvider>(context).loadAllExpenses;
+    final expenseProvider = Provider.of<ExpensesProvider>(context);
 
     return Scaffold(
       //backgroundColor: Colors.yellow,
@@ -278,7 +323,7 @@ class _SignInState extends State<SignIn> {
 
                           if (credential.user != null) {
                             //load data
-                            loadUserExpenses();
+                            expenseProvider.loadAllExpenses();
                             widget.userSigned();
                           }
                         } catch (e) {
@@ -316,7 +361,14 @@ class _SignInState extends State<SignIn> {
                     },
                   )
                 ],
-              )
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              SkipButton(
+                getTotalExpenseAmount: expenseProvider.getTotalExpenseAmount,
+                guestLoggedin: expenseProvider.guestLoggedIn,
+              ),
             ],
           ),
         ),

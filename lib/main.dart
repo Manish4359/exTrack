@@ -29,6 +29,7 @@ await Firebase.initializeApp(
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -79,11 +80,14 @@ class _widState extends State<wid> {
       child: MaterialApp(
         initialRoute: '/',
         routes: {
-          '/signup': (context) => SignUp(
+          SignUp.routeName: (context) => SignUp(
                 userSigned: userSigned,
               ),
-          '/signin': (context) => SignIn(userSigned: userSigned),
-          '/chart': (context) => SignIn(userSigned: userSigned),
+          SignIn.routeName: (context) => SignIn(
+                userSigned: userSigned,
+              ),
+
+          //MyApp.routeName: (context) => MyApp(userSigned: userSigned,),
           //ViewExpense.routeName: (context) => ViewExpense()
         },
         theme: ThemeData(
@@ -117,7 +121,7 @@ class _widState extends State<wid> {
                   ? Consumer<ExpensesProvider>(
                       builder: (context, expensesData, child) => MyApp(
                             userSigned: userSigned,
-                            getTotalExpAmt: expensesData.getTotalExpenseAmount,
+                            // getTotalExpAmt: expensesData.getTotalExpenseAmount,
                           ))
                   : SignIn(
                       userSigned: userSigned,
@@ -139,9 +143,13 @@ Future<bool> splash() async {
 
 class MyApp extends StatefulWidget {
   VoidCallback userSigned;
-  Function getTotalExpAmt;
-  MyApp({Key? key, required this.userSigned, required this.getTotalExpAmt})
-      : super(key: key);
+  // Function getTotalExpAmt;
+  static const routeName = '/';
+  MyApp({
+    Key? key,
+    required this.userSigned,
+    // required this.getTotalExpAmt,
+  }) : super(key: key);
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -149,14 +157,14 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   double _monthlyIncome = 50000;
-  late double totalExpanseAmount = widget.getTotalExpAmt();
+//  late double totalExpanseAmount = widget.getTotalExpAmt();
   double availableAmount = 0;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    _updateAmt();
+    // _updateAmt();
   }
 
   int selectedPageId = 0;
@@ -166,10 +174,11 @@ class _MyAppState extends State<MyApp> {
   void _changeSelectedItem(int pageId) {
     setState(() {
       for (int i = 0; i < 4; i++) {
-        if (i == pageId)
+        if (i == pageId) {
           bottomBarItemSelected[i] = true;
-        else
+        } else {
           bottomBarItemSelected[i] = false;
+        }
       }
     });
   }
@@ -182,7 +191,7 @@ class _MyAppState extends State<MyApp> {
     });
     _changeSelectedItem(pageId);
   }
-
+/*
   _updateAmt() {
     totalExpanseAmount = widget.getTotalExpAmt();
     availableAmount = _monthlyIncome - totalExpanseAmount;
@@ -190,6 +199,7 @@ class _MyAppState extends State<MyApp> {
     print('total expen updated:$totalExpanseAmount');
     print('avail amt updated:$availableAmount');
   }
+  */
 
 /*
   _addExpenseToMap(Expense ex) async {

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:ffi';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -16,13 +15,21 @@ FirebaseAuth auth = FirebaseAuth.instance;
 final CollectionReference = db.collection('users');
 
 class ExpensesProvider with ChangeNotifier {
-  final userName = auth.currentUser?.displayName;
-  final usermail = auth.currentUser?.email;
+  var userName = auth.currentUser?.displayName;
+  var usermail = auth.currentUser?.email;
+  bool guestLogin = false;
   var userData;
+
+  double totalExpenseAmt = 0;
+  double maxAmt = 50000;
+
+  guestLoggedIn() {
+    guestLogin = true;
+    notifyListeners();
+  }
 
   fn(Expense ex) async {
     // Create a new user with a first and last name
-
     /*
     final user = <String, dynamic>{
       "mail": usermail,
@@ -42,7 +49,7 @@ class ExpensesProvider with ChangeNotifier {
     var date = DateFormat.yMd().format(ex.date);
     date = date.replaceAll(RegExp('/'), '-');
 
-// Add a new document with a generated ID
+    // Add a new document with a generated ID
     CollectionReference.doc(uid).collection(date).add(map);
   }
 
@@ -78,57 +85,61 @@ class ExpensesProvider with ChangeNotifier {
 
   loadAllExpenses() async {
     final uid = auth.currentUser?.uid;
-    userData = await CollectionReference.doc(uid)
-        .get()
-        .then((snapshot) => snapshot.data());
 
-    _expenses = {};
-    userData?.forEach((date, list) {
-      List<Expense> exList = [];
-      list.forEach((element) => exList.add(mapToObj(element)));
-      _expenses.addEntries([MapEntry(date, exList)]);
-    });
+    if (uid != null) {
+      userData = await CollectionReference.doc(uid)
+          .get()
+          .then((snapshot) => snapshot.data());
+
+      _expenses = {};
+      userData?.forEach((date, list) {
+        List<Expense> exList = [];
+        list.forEach((element) => exList.add(mapToObj(element)));
+        _expenses.addEntries([MapEntry(date, exList)]);
+      });
+    }
   }
 
   getAllExpense() {
     loadAllExpenses();
+    getTotalExpenseAmount();
     return {..._expenses};
   }
 
   addExpense(ex) async {
     final uid = auth.currentUser?.uid;
     String exDate = DateFormat.yMd().format(ex.date);
-    var map = objToMap(ex);
-    print(map);
-    print(mapToJson(map));
 
-    if (userData == null) {
-      await CollectionReference.doc(uid).set({
-        exDate: [map]
-      });
-    } else {
-      if (userData.containsKey(exDate)) {
-        userData[exDate] = [map, ...userData[exDate]];
+    if (uid != null) {
+      var map = objToMap(ex);
+      print(map);
+      print(mapToJson(map));
+      if (userData == null) {
+        await CollectionReference.doc(uid).set({
+          exDate: [map]
+        });
       } else {
-        userData.addEntries([
-          MapEntry(exDate, [map])
+        if (userData.containsKey(exDate)) {
+          userData[exDate] = [map, ...userData[exDate]];
+        } else {
+          userData.addEntries([
+            MapEntry(exDate, [map])
+          ]);
+        }
+        await CollectionReference.doc(uid)
+            .set(userData, SetOptions(merge: true));
+      }
+      await loadAllExpenses();
+    } else {
+      if (_expenses.containsKey(exDate)) {
+        _expenses[exDate]?.insert(0, ex);
+      } else {
+        _expenses.addEntries([
+          MapEntry(exDate, [ex])
         ]);
       }
-      await CollectionReference.doc(uid).set(userData, SetOptions(merge: true));
     }
-
-    await loadAllExpenses();
     print("added");
-
-    /*
-    if (_expenses.containsKey(exDate)) {
-      _expenses[exDate]?.insert(0, ex);
-    } else {
-      _expenses.addEntries([
-        MapEntry(exDate, [ex])
-      ]);
-    } */
-
     notifyListeners();
   }
 
@@ -137,19 +148,35 @@ class ExpensesProvider with ChangeNotifier {
 
     final uid = auth.currentUser?.uid;
 
-    userData[date].forEach((data) {
-      print("${data['id']} ${ex['id']}");
+    if (uid != null) {
+      userData[date].forEach((data) {
+        print("${data['id']} ${ex['id']}");
 
-      if (data['id'] == ex['id']) {
-        data['title'] = ex['title'];
-        data['amount'] = ex['amount'];
-        data['category'] = ex['category'];
+        if (data['id'] == ex['id']) {
+          data['title'] = ex['title'];
+          data['amount'] = ex['amount'];
+          data['category'] = ex['category'];
+        }
+      });
+
+      await CollectionReference.doc(uid).set(userData);
+      await loadAllExpenses();
+    } else {
+      if (_expenses.containsKey(date)) {
+        _expenses[date]!.forEach(
+          (expense) {
+            print('saving ${ex['id']} ${expense.id}');
+            if (expense.id == ex['id']) {
+              print('saved');
+
+              expense.title = ex['title'];
+              expense.amount = ex['amount'];
+              expense.category = ex['category'];
+            }
+          },
+        );
       }
-    });
-
-    await CollectionReference.doc(uid).set(userData);
-
-    await loadAllExpenses();
+    }
 
     notifyListeners();
   }
@@ -161,29 +188,30 @@ class ExpensesProvider with ChangeNotifier {
 
     print('${ex.id} ${ex.title}');
 
-    userData[date].removeWhere((data) => data['id'] == ex.id);
+    if (uid != null) {
+      userData[date].removeWhere((data) => data['id'] == ex.id);
 
-    await CollectionReference.doc(uid).set(userData);
-    await loadAllExpenses();
+      await CollectionReference.doc(uid).set(userData);
+      await loadAllExpenses();
+    } else {
+      _expenses[date]!.remove(ex);
 
-    /*
-    _expenses[date]!.remove(ex);
-
-    if (_expenses[date]!.isEmpty) {
-      _expenses.remove(date);
+      if (_expenses[date]!.isEmpty) {
+        _expenses.remove(date);
+      }
     }
-    */
     notifyListeners();
   }
 
-  double getTotalExpenseAmount() {
+  void getTotalExpenseAmount() {
     double amount = 0;
 
     for (MapEntry e in _expenses.entries) {
       amount += getMonthlyExpenseAmount(e.key);
     }
 
-    return amount;
+    print('new amount ${amount}');
+    totalExpenseAmt = amount;
   }
 
   double getMonthlyExpenseAmount(String date) {
